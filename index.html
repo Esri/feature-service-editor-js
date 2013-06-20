@@ -152,10 +152,10 @@
 <script>
 
     /**
-     * Library for enabled ArcGIS FeatureService editing.
+     * Library for enabled ArcGIS FeatureService/FeatureLayer editing.
      *
      * @author Andy Gup
-     * @version 0.2.1
+     * @version 0.3
      * @type {Object}
      */
     var featureEditor = featureEditor || {};
@@ -213,10 +213,10 @@
 
 
         /**
-         * Start everything by retrieve the ObjectIDs. <br/>
-         * <b>WARNING!</b> We are using a stand-alone Feature Service that is not
-         * associated with a map. You may have to associate this code
-         * block with a listener triggered by a FeatureLayer load event.
+         * Begin by initializing the library here.
+         * <b>IMPORTANT:</b> This app uses a stand-alone FeatureService that is not
+         * associated with a map. You can modify this app to use an existing Feature Service
+         * within your mapping application.
          */
         featureEditor.init = function() {
 
@@ -298,8 +298,6 @@
         }
 
         featureEditor.queryRecordsByPage = function(pageNumber) {
-
-
 
             // check if the page number is valid
             if (pageNumber < 1 || pageNumber > featureEditor.pageInfo.totalPages) {
@@ -439,7 +437,7 @@
         }
 
         /**
-         * Reverts a single record update in the dgrid only.
+         * Reverts a single local record update in the dgrid only.
          * Does not push the change to the server.
          */
         featureEditor.revertRecord = function(){
@@ -490,9 +488,9 @@
             })
         }
 
-        /////
-        // UTILS
-        /////
+        //////////////////////
+        //      UTILS
+        //////////////////////
 
         /**
          * Validates a url
@@ -507,25 +505,11 @@
             var htmlString = "";
             dojo.forEach(grid.columns, function(entry, i){
                 if(typeof(entry.label) !== "undefined" ){
-                    htmlString +=  "<input type='checkbox' onclick='featureEditor.utils._addRemoveColumns(" + i +")' id='checkbox" + i + "' checked='yes' value='"+ i +"'>" + entry.label  + "<br/>";
+                    htmlString +=  "<input type='checkbox' onclick='featureEditor.utils.addRemoveColumns(" + i +")' id='checkbox" + i + "' checked='yes' value='"+ i +"'>" + entry.label  + "<br/>";
                 };
             });
 
             dojo.byId("gridLegend").innerHTML = htmlString;
-        }
-
-        featureEditor.utils._addRemoveColumns = function(/* number */ id){
-
-            var column = featureEditor.grid.columns[id];
-
-            if(column.hidden == false){
-                featureEditor.grid.styleColumn(id,"display:none;");
-                featureEditor.grid.columns[id].hidden = true;
-            }
-            else{
-                featureEditor.grid.styleColumn(id,"display:table-cell;");
-                featureEditor.grid.columns[id].hidden = false;
-            }
         }
 
         /**
@@ -596,6 +580,25 @@
             dojo.byId("pageInfo").innerHTML = featureEditor.pageInfo.currentPage + "/" + featureEditor.pageInfo.totalPages;
 
             featureEditor.loadingIcon.hide();
+        }
+
+        /**
+         * Helper function for adding and removing columns for better visibility
+         * in FeatureServices that have many fields.
+         * @param id
+         */
+        featureEditor.utils.addRemoveColumns = function(/* number */ id){
+
+            var column = featureEditor.grid.columns[id];
+
+            if(column.hidden == false){
+                featureEditor.grid.styleColumn(id,"display:none;");
+                featureEditor.grid.columns[id].hidden = true;
+            }
+            else{
+                featureEditor.grid.styleColumn(id,"display:table-cell;");
+                featureEditor.grid.columns[id].hidden = false;
+            }
         }
 
         /**

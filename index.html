@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=7, IE=9, IE=10">
+<meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+
+<title>ArcGIS FeatureService Editor</title>
+
+<link rel="stylesheet" href="http://dojofoundation.org/packages/dgrid/js/dgrid/css/dgrid.css">
+<link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/dojo/dijit/themes/claro/claro.css">
+<link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/dojo/dojox/grid/resources/Grid.css">
+<link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/dojo/dojox/grid/resources/claroGrid.css">
+<style>
+    html, body {
+        height: 100%;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        overflow: hidden;
+        font-family: sans-serif;
+        font-size: 0.80em;
+        background-color: #808080;
+        font-style: normal;
+        font-weight: normal;
+    }
+
+    #grid {
+        height: 375px;
+        /*width: 750px;*/
+        margin: 15px;
+        background-color: #000000;
+        visibility: hidden;
+    }
+
+    /*
+        #grid .dgrid-row-odd {
+            background: #F2F5F9;
+        }
+    */
+    #grid .dgrid-focus{
+        background: #00BFFF;
+    }
+
+    .grid1 .dgrid-cell {
+        width: 80px;
+        color: #ffffff;
+    }
+
+    .grid1 th.dgrid-cell{
+        color: white;
+        background-color: #2f4f4f;
+    }
+
+    .field-id {
+        width: 200px;
+        font-size: .80em;
+        font-weight: normal;
+    }
+
+    #fsEndpoint{
+        width: 350px;
+    }
+
+    #loadBtn {
+        background-color: red;
+        color: #ffffff;
+        width: 80px;
+    }
+
+    .loadBtnDiv {
+        padding: 4px;
+    }
+
+    .entryDivNameCol {
+        width: 125px;
+        float: left;
+        padding: 4px;
+        vertical-align: middle;
+    }
+
+    .entryDivFieldCol {
+        float: left;
+        padding: 4px;
+    }
+
+    .claro .ui-state-active:hover {
+        background-color: #9bc6f2;
+    }
+    .claro .ui-state-default:hover {
+        background-color: #808080;
+    }
+
+    .claro .ui-state-active {
+        background-color: #ffff00;
+    }
+
+    #gridLegendParent {
+        position: relative;
+        background-color: black;
+        color: #ffffff;
+        visibility: hidden;
+        padding-left: 15px;
+        padding-top: 15px;
+        top: 15px;
+        left: 15px;
+        border: 2px solid #e1e1e1;
+        max-width: 25%;
+        overflow: auto;
+    }
+
+    #entryDiv {
+        position: relative;
+        padding: 15px;
+        border: 2px solid #e1e1e1;
+        top: 15px;
+        left: 15px;
+        width: 95%;
+        background-color: black;
+        color: white;
+    }
+
+    #paginatorDiv {
+        position: relative;
+        padding: 15px;
+        top: 15px;
+    }
+
+    .saveIcon16 {
+        background-image: url("images/16-Save.png");
+        background-repeat: no-repeat;
+        text-align: center;
+        width: 16px;
+        height: 16px;
+    }
+
+    .undoIcon16 {
+        background-image: url("images/16-Bended-Arrow-Left.png");
+        background-repeat: no-repeat;
+        text-align: center;
+        width: 16px;
+        height: 16px;
+    }
+</style>
+
+<script>var dojoConfig = { parseOnLoad:true, isDebug:true };</script>
+<script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/">
+</script>
+<script>
+
+    /**
+     * Library for enabled ArcGIS FeatureService/FeatureLayer editing.
+     *
+     * @author Andy Gup
+     * @version 0.3
+     * @type {Object}
+     */
+    var featureEditor = featureEditor || {};
+    featureEditor.utils = {};
+    featureEditor.pageInfof = null;
+    featureEditor.grid = null;
+    featureEditor.pageInfo = null;
+    featureEditor.store = null;
+    featureEditor.currentRecord = null;
+    featureEditor.featureLayer = null;
+    featureEditor.masterRecordArr = [];
+    featureEditor.restEndpoint = null;
+    featureEditor.dgridRowClickListener = null;
+    featureEditor.dgridCellClickListener = null;
+    featureEditor.outFields = null;
+    featureEditor.loadingIcon = null;
+
+    /**
+     * Local ENUMs (Constants)
+     * @type {Object}
+     * @returns {*}
+     */
+    featureEditor.localEnum = (function(){
+        var values = {
+            RECORDS_PER_PAGE:15,
+            HTTP_REQUEST_TIMEOUT:30000,
+            PREVENT_OBJECTID_EDIT:true
+        }
+
+        return values;
+    });
+
+    require([
+        'dojo/_base/declare',
+        "esri/layers/FeatureLayer",
+        "esri/tasks/query",
+        "dijit/form/Button",
+        "dojo/number",
+        "dgrid/OnDemandGrid",
+        "dgrid/Selection",
+        "dgrid/extensions/ColumnHider",
+        "dgrid/CellSelection",
+        "dgrid/util/mouse",
+        "dgrid/Keyboard",
+        "dgrid/editor",
+        "dojo/store/Memory",
+        "dojo/on",
+        "dojo/request",
+        "dojo/query",
+        "dojo/Deferred",
+        "dojox/widget/Standby",
+        "dojo/domReady!"],
+        function(declare,FeatureLayer,Query,Button,number,OnDemandGrid,ColumnHider,
+                 Selection,CellSelection,mouseUtil,Keyboard,editor,Memory,on,request,query,Deferred,Standby){
+
+
+        /**
+         * Begin by initializing the library here.
+         * <b>IMPORTANT:</b> This app uses a stand-alone FeatureService that is not
+         * associated with a map. You can modify this app to use an existing Feature Service
+         * within your mapping application.
+         */
+        featureEditor.init = function() {
+
+            dojo.byId("grid").style.visibility = "visible";
+
+            featureEditor.loadingIcon = featureEditor.utils._createStandbyIcon("grid");
+            featureEditor.loadingIcon.show();
+
+            if(featureEditor.grid != null){
+
+                featureEditor.grid.store.setData({});
+                featureEditor.grid.refresh();
+
+                featureEditor.pageInfo = null;
+                featureEditor.grid = null;
+                featureEditor.pageInfo = null;
+                featureEditor.store = null;
+                featureEditor.currentRecord = null;
+                featureEditor.featureLayer = null;
+                featureEditor.masterRecordArr = [];
+                featureEditor.restEndpoint = null;
+                featureEditor.dgridRowClickListener = null;
+                featureEditor.dgridCellClickListener = null;
+
+            }
+            var queryString = document.getElementById("query-string").value;
+            var url = document.getElementById("fsEndpoint").value;
+            var isURLvalid = featureEditor.utils.validateURL(url);
+            featureEditor.outFields = dojo.byId("outfields-string").value;
+
+            //Check for blank queryString
+            if(queryString == "")queryString = "1=1";
+
+            if(typeof(dojo) !== "undefined" && isURLvalid){
+                featureEditor.restEndpoint = url;
+                featureEditor.featureLayer = new FeatureLayer(document.getElementById("fsEndpoint").value, {
+                    outFields:[featureEditor.outFields]
+                });
+
+                var query = new Query();
+                query.where = queryString;
+                //query.timeExtent = new esri.TimeExtent(new Date("01/01/2007 UTC"));
+                featureEditor.featureLayer.queryIds(query, function (objectIds) {
+                    featureEditor.fetchRecords(objectIds);
+                });
+
+            }
+            else{
+                alert("Feature Service URL is not valid");
+            }
+        }
+
+        featureEditor.fetchRecords = function(objectIds) {
+            if (objectIds.length > 0) {
+                featureEditor.updatePageInformation(objectIds);
+                featureEditor.queryRecordsByPage(1);
+            } else {
+                featureEditor.grid.showMessage("No matching records");
+                featureEditor.grid.setStore(null);
+            }
+        }
+
+        featureEditor.updatePageInformation = function(objectIds, page) {
+
+            featureEditor.pageInfo = {
+                objectIds     :objectIds,
+                totalRecords  :objectIds.length,
+                totalPages    :Math.ceil(objectIds.length / featureEditor.localEnum().RECORDS_PER_PAGE),
+                currentPage   :page || 0,
+                recordsPerPage:featureEditor.localEnum().RECORDS_PER_PAGE
+            };
+
+            dojo.byId("pageInfo").innerHTML = featureEditor.pageInfo.currentPage + "/" + featureEditor.pageInfo.totalPages;
+            dojo.byId("recordsInfo").innerHTML = featureEditor.pageInfo.totalRecords;
+
+            if (featureEditor.pageInfo.currentPage > featureEditor.pageInfo.totalPages) {
+                featureEditor.queryRecordsByPage(pageInfo.currentPage - 1);
+            }
+        }
+
+        featureEditor.queryRecordsByPage = function(pageNumber) {
+
+            // check if the page number is valid
+            if (pageNumber < 1 || pageNumber > featureEditor.pageInfo.totalPages) {
+                return;
+            }
+
+            //grid.showMessage("Fetching records...");
+
+            var begin = featureEditor.pageInfo.recordsPerPage * (pageNumber - 1);
+            var end = begin + featureEditor.pageInfo.recordsPerPage;
+
+            // create the query
+            var query = new esri.tasks.Query();
+            query.objectIds = featureEditor.pageInfo.objectIds.slice(begin, end);
+            query.outFields = featureEditor.outFields;
+
+            // Query for the records with the given object IDs and populate the grid
+            featureEditor.featureLayer.queryFeatures(query, function (featureSet) {
+
+                var i = 0;
+                var arr = [];
+                var columnArr = [];
+
+                var gridObj = {};
+                for (var key in featureSet.features[0].attributes){
+                    console.log(key);
+                    arr[i] = key;
+                    columnArr[i] = editor({
+                        label:key.toString(),
+                        field:key.toString(),
+                        hidden: false,
+                        editor:"text",
+                        editOn:"dblclick"
+                    });
+                    i++;
+                }
+
+                //Add the Save button
+                columnArr[i] =  {save:"Save",renderCell: function(object,data,cell){
+
+                    var btn = Button({
+                        showLabel : false,
+                        iconClass : "saveIcon16",
+                        disabled : true,
+                        style: "visibility:visible",
+                        onClick: function(){
+                            featureEditor.updateRecord();
+                            this.set('disabled',true);
+                        }
+                    },cell.appendChild(document.createElement("div")));
+                }};
+
+                //Add the Undo button
+                columnArr[i+1] =  {undo:"Undo",renderCell: function(object,data,cell){
+
+                    var undoBtn = Button({
+                        showLabel : false,
+                        iconClass : "undoIcon16",
+                        label : "Undo",
+                        disabled : true,
+                        style: "visibility:visible",
+                        onClick: function(){
+                            featureEditor.revertRecord();
+                            this.set('disabled',true);
+                        }
+                    },cell.appendChild(document.createElement("div")));
+                }};
+
+                if(featureEditor.grid == null){
+                    featureEditor.utils.createGrid(columnArr);
+                    featureEditor.utils.updateGrid(featureSet, pageNumber, arr)
+                }
+                else{
+                    featureEditor.utils.updateGrid(featureSet, pageNumber, arr);
+                }
+            });
+        }
+
+        /**
+         * Updates a single existing record.
+         * NOTE: Feature must contain a valid OBJECTID field!
+         */
+        featureEditor.updateRecord = function(){
+
+            featureEditor.loadingIcon.show();
+
+            var nameArr = [];
+            var dirty = featureEditor.grid.dirty;
+            var id = Object.keys(dirty)[0];
+            console.log(dirty[id]);
+
+            //if id is undefined it means dirty changes have been saved
+            if(typeof(id) != "undefined"){
+
+
+                //get object property names
+                for (var item in dirty[id]){
+                    nameArr.push(item);
+                }
+
+                featureEditor.currentRecord[nameArr[0]] = dirty[id][nameArr[0]];
+                //console.log(nameArr + ", " + dirty[id][nameArr[0]]);
+                //console.log(controller.currentRecord);
+
+                var record = {
+                    attributes:featureEditor.currentRecord
+                }
+
+                var graphic = new esri.Graphic(
+                    featureEditor.masterRecordArr[id].geometry,
+                    featureEditor.masterRecordArr[id].symbol,
+                    featureEditor.currentRecord,
+                    featureEditor.masterRecordArr[id].infoTemplate
+
+                );
+
+                var data =  JSON.stringify([graphic]);
+
+                featureEditor.applyEdits(data);
+
+    //            //Commented out to allow workaround.
+    //            controller.featureLayer.applyEdits(null,[graphic],null,function(updateResults){
+    //                console.log(updateResults);
+    //
+    //                if(updateResults.updateResults[0].success == "true"){
+    //                    controller.queryRecordsByPage(controller.pageInfo.currentPage);
+    //                }
+    //                else{
+    //                    console.log("There was a problem with updating the record");
+    //                }
+    //
+    //            },function(err){
+    //                console.log("updateRecord: " + err.message);
+    //            })
+            }
+
+        }
+
+        /**
+         * Reverts a single local record update in the dgrid only.
+         * Does not push the change to the server.
+         */
+        featureEditor.revertRecord = function(){
+            var dirty = featureEditor.grid.dirty;
+            var id = Object.keys(dirty)[0];
+            delete dirty[id];
+            featureEditor.grid.refresh();
+        }
+
+        /**
+         * Updates the record/feature in the remote feature service.
+         * @param data Object
+         * @param token String
+         */
+        featureEditor.applyEdits = function(/* Object */ data, /* String */ token){
+            if(token == null)token = "";
+
+            request.post(featureEditor.restEndpoint + "/updateFeatures",{
+                sync:false,
+                timeout:featureEditor.localEnum().HTTP_REQUEST_TIMEOUT,
+                handlAs:"json",
+                data:{
+                    features:data,
+                    f:"json",
+                    rollbackOnFailure:"false",
+                    token:token
+                },
+                headers:{
+                    "X-Requested-With": null
+                }
+            }).then(function(response){
+                var t = JSON.parse(response);
+                if(t.updateResults[0].success == true){
+                    featureEditor.queryRecordsByPage(featureEditor.pageInfo.currentPage);
+                    featureEditor.grid.save();
+                    console.log("applyEdits successful: " + response);
+                    featureEditor.loadingIcon.hide();
+                }
+                else{
+                    console.log("applyEdits: There was a problem with updating the record");
+                    featureEditor.loadingIcon.hide();
+                }
+
+            }, function(error){
+                console.log("updateRecord: " + err.message);
+                alert("There was a problem applying edits. See console for details.");
+                featureEditor.loadingIcon.hide();
+            })
+        }
+
+        //////////////////////
+        //      UTILS
+        //////////////////////
+
+        /**
+         * Validates a url
+         * @param url
+         * @returns boolean
+         */
+        featureEditor.utils.validateURL = function(/* String */ url){
+            return  /^(ftp|http|https):\/\/[^ "]+$/.test(url);
+        }
+
+        featureEditor.utils.createGridLegend = function(/* Grid */ grid){
+            var htmlString = "";
+            dojo.forEach(grid.columns, function(entry, i){
+                if(typeof(entry.label) !== "undefined" ){
+                    htmlString +=  "<input type='checkbox' onclick='featureEditor.utils.addRemoveColumns(" + i +")' id='checkbox" + i + "' checked='yes' value='"+ i +"'>" + entry.label  + "<br/>";
+                };
+            });
+
+            dojo.byId("gridLegend").innerHTML = htmlString;
+        }
+
+        /**
+         * Create the data grid
+         * @param object ArcGIS Feature
+         */
+        featureEditor.utils.createGrid = function(/* Object */object){
+            var complete = true;
+
+            try{
+                var dataIDProperty = object[0].field;   //DEFAULT...Could be problematic depending on browser!
+                featureEditor.store = new Memory({
+                    data:[],
+                    idProperty:dataIDProperty
+                });
+
+                var CustomGrid = declare([OnDemandGrid,Selection,CellSelection,Keyboard]);
+
+                // Dojo's dGrid
+                featureEditor.grid = new CustomGrid({
+                    store:featureEditor.store,
+                    columns:object,
+                    selectionMode:'single'/*,
+                    noDataMessage:'Nothing found.'*/
+                }, 'grid');
+
+
+                featureEditor.utils._setListeners();
+
+            }
+            catch(err){
+                complete = false;
+                console.log("createGrid: " + err.message);
+            }
+
+            return complete;
+        }
+
+        featureEditor.utils.updateGrid = function(featureSet, pageNumber,/* Array */ arr) {
+            var data = [];
+
+            dojo.forEach(featureSet.features, function (entry, i) {
+
+                var entryObject = {}
+
+                for (var item in arr){
+                    var node0 = arr[item].toString();
+                    entryObject[node0] = entry.attributes[node0].toString();
+                }
+
+                featureEditor.masterRecordArr[i] = {
+                    geometry:entry.geometry,
+                    infoTemplate:entry.infoTemplate,
+                    symbol:entry.symbol
+                };
+
+                data.push(entryObject);
+            });
+            featureEditor.grid.store.setData(data);
+            featureEditor.grid.refresh();
+
+            featureEditor.utils.createGridLegend(featureEditor.grid);
+            dojo.byId("gridLegendParent").style.visibility = "visible";
+            dojo.byId("gridLegendParent").style.position = "relative";
+
+            // update application state
+            featureEditor.pageInfo.currentPage = pageNumber;
+            dojo.byId("pageInfo").innerHTML = featureEditor.pageInfo.currentPage + "/" + featureEditor.pageInfo.totalPages;
+
+            featureEditor.loadingIcon.hide();
+        }
+
+        /**
+         * Helper function for adding and removing columns for better visibility
+         * in FeatureServices that have many fields.
+         * @param id
+         */
+        featureEditor.utils.addRemoveColumns = function(/* number */ id){
+
+            var column = featureEditor.grid.columns[id];
+
+            if(column.hidden == false){
+                featureEditor.grid.styleColumn(id,"display:none;");
+                featureEditor.grid.columns[id].hidden = true;
+            }
+            else{
+                featureEditor.grid.styleColumn(id,"display:table-cell;");
+                featureEditor.grid.columns[id].hidden = false;
+            }
+        }
+
+        /**
+         * For handling edit click events. Be aware of differences between Chrome, Firefox and IE.
+         * @param object - usually the row object
+         * @param data
+         * @param cell - the cell that was clicked
+         * @private
+         */
+        featureEditor.utils._renderCellHandler = function(object, data, cell){
+
+            var length = 0;
+            var saveBtn = null;
+            var saveBtnCell = null;
+            var undoBtn = null;
+            var undoBtnCell = null;
+
+            //Check to see if clicked item is within the OBJECTID column
+            if(typeof(cell.children[0].name) != "undefined"){
+                var columnName = cell.children[0].name.toLowerCase();
+                var prevent = featureEditor.localEnum().PREVENT_OBJECTID_EDIT;
+                if(columnName == "objectid" && prevent == true ){
+                    featureEditor.revertRecord();
+                    console.log("_renderCellHandler: You cannot edit objectid!");
+                    return;
+                }
+            }
+
+            if(object.element.hasChildNodes() && typeof(cell.parentNode.cells) == "undefined"){
+                var child0 = object.element.children[0];
+
+                //set save button disabled state to false
+                length = child0.childNodes.length;
+                saveBtn = child0.childNodes[length - 2].children[0].children[0].children[0];
+                dijit.byId(saveBtn.id).set('disabled',false);
+
+                saveBtnCell = child0.childNodes[length - 2].children[0].children[0];
+                saveBtnCell.style.backgroundColor = "#52D017";
+
+                undoBtn = child0.childNodes[length - 1].children[0].children[0].children[0];
+                dijit.byId(undoBtn.id).set('disabled',false);
+
+                undoBtnCell = child0.childNodes[length - 1].children[0].children[0];
+                undoBtnCell.style.backgroundColor = "#ffff00";
+
+            }
+            else{
+                //IE 9 hack
+                try{
+                    length = cell.parentNode.cells.length;
+                    saveBtn = cell.parentNode.cells[length - 2].children[0].children[0].children[0];
+                    dijit.byId(saveBtn.id).set('disabled',false);
+
+                    saveBtnCell = cell.parentNode.cells[length - 2].children[0].children[0];
+                    saveBtnCell.style.backgroundColor = "#52D017";
+
+                    undoBtn = cell.parentNode.cells[length - 1].children[0].children[0].children[0];
+                    dijit.byId(undoBtn.id).set('disabled',false);
+
+                    undoBtnCell = cell.parentNode.cells[length - 1].children[0].children[0];
+                    undoBtnCell.style.backgroundColor = "#ffff00";
+
+                }
+                catch(err){
+                    console.log("_renderCellHandler: " + err.message);
+                }
+            }
+        }
+
+        /**
+         * Internal method for setting up listeners.
+         * @private
+         */
+        featureEditor.utils._setListeners = function(){
+            featureEditor.dgridRowClickListener = featureEditor.grid.on(".dgrid-row:click",function(event){
+                var stuff = featureEditor.grid.row(event);
+                console.log(stuff.data);
+                featureEditor.currentRecord = stuff.data;
+            });
+
+            featureEditor.dgridCellClickListener = featureEditor.grid.on(".dgrid-cell:dblclick",function(event){
+                var stuff = featureEditor.grid.cell(event);
+                console.log(stuff.element.innerHTML);
+                featureEditor.utils._renderCellHandler(stuff.row,null,stuff.element);
+            });
+
+
+//            controller.grid.on(mouseUtil.enterRow, function(event){
+//                var row = controller.grid.row(event);
+//                console.log("mouseover " + row);
+//            });
+        }
+
+        /**
+         * Creates a waiting icon
+         * @param target Id of the element
+         * @returns {Node}
+         * @private
+         */
+        featureEditor.utils._createStandbyIcon = function(/* String */ target){
+            var standbyIcon = new Standby({target : target,color : "grey"});
+            document.body.appendChild(standbyIcon.domNode);
+            standbyIcon.startup();
+            return standbyIcon;
+        }
+
+        /**
+         * Basic date formatter
+         * @param value
+         * @returns {String}
+         */
+        featureEditor.utils.formatDate = function(value) {
+            var inputDate = new Date(value);
+            return dojo.date.locale.format(inputDate, {
+                selector   :'date',
+                datePattern:'MMMM d, y'
+            });
+        }
+
+    });
+</script>
+</head>
+
+<body class="claro">
+
+<div id="entryDiv">
+    <div style="border-color: white; border: 1px solid #e1e1e1;">
+        <div>
+            <div class="entryDivNameCol">Feature Services</div>
+            <div class="entryDivFieldCol"><input id="fsEndpoint" type="text"  value="http://services.arcgis.com/IZtlGBUe4KTzLOl4/arcgis/rest/services/BPX_RTD_BusStops2/FeatureServer/0" /></div>
+        </div>
+        <div class="clear" style="clear: both"></div>
+        <div >
+            <div class="entryDivNameCol">Query String</div>
+            <div class="entryDivFieldCol"><input id="query-string" type="text" value="1=1"/> </div>
+        </div>
+        <div class="clear" style="clear: both"></div>
+        <div >
+            <div class="entryDivNameCol">Outfields</div>
+            <div class="entryDivFieldCol"><input id="outfields-string" type="text" value="*"/> </div>
+        </div>
+        <div class="clear" style="clear: both"></div>
+        <div class="loadBtnDiv">
+            <button id="loadBtn" onclick="featureEditor.init()">Load</button>
+        </div>
+    </div>
+</div>
+
+<div id="paginatorDiv">
+    &nbsp;&nbsp;Total records =
+      <span id="recordsInfo">
+        0
+      </span>
+    |
+    <button dojoType="dijit.form.Button" onclick="featureEditor.queryRecordsByPage(featureEditor.pageInfo.currentPage - 1);">
+        Prev Page
+    </button>
+    
+      <span id="pageInfo">
+      </span>
+
+    <button dojoType="dijit.form.Button" onclick="featureEditor.queryRecordsByPage(featureEditor.pageInfo.currentPage + 1);">
+        Next Page
+    </button>
+</div>
+
+<div id="grid" class="grid1"></div>
+
+<div id="gridLegendParent">
+    <label>Grid Legend</label>
+    <div id="gridLegend" style="padding-top: 15px;"></div>
+</div>
+</body>
+
+</html>

@@ -1,5 +1,7 @@
 # feature-service-editor-js - Changelog
 
+## Version 0.3.3 - June 26, 2013
+- Disabled ability to double click on Save or Undo buttons.
 
 ## Version 0.3.2 - June 26, 2013
 - Tightened up error correction when dedicated editable/non-editable fields.

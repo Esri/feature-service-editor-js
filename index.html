@@ -154,7 +154,7 @@
      * Library for enabled ArcGIS FeatureService/FeatureLayer editing.
      *
      * @author Andy Gup
-     * @version 0.3.2
+     * @version 0.3.3
      * @type {Object}
      */
     var featureEditor = featureEditor || {};
@@ -730,8 +730,15 @@
 
             featureEditor.dgridCellClickListener = featureEditor.grid.on(".dgrid-cell:dblclick",function(event){
                 var stuff = featureEditor.grid.cell(event);
-                console.log(stuff.element.innerHTML);
-                featureEditor.utils._renderCellHandler(stuff.row,null,stuff.element);
+
+                var undo =  typeof (stuff.column.undo);
+                var save =  typeof (stuff.column.save);
+
+                //Check for double clicks on the Save and Undo buttons
+                if(typeof(stuff.column) !== "undefined" && ( save == "undefined" && undo == "undefined")){
+                    console.log(stuff.element.innerHTML);
+                    featureEditor.utils._renderCellHandler(stuff.row,null,stuff.element);
+                }
             });
 
 

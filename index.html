@@ -154,7 +154,7 @@
      * Library for enabled ArcGIS FeatureService/FeatureLayer editing.
      *
      * @author Andy Gup
-     * @version 0.3.1
+     * @version 0.3.2
      * @type {Object}
      */
     var featureEditor = featureEditor || {};
@@ -171,6 +171,12 @@
     featureEditor.dgridCellClickListener = null;
     featureEditor.outFields = null;
     featureEditor.loadingIcon = null;
+
+    /**
+     * An array of the editable fields within the featureLayer.
+     * By default, fields with the property editable = false are automatically excluded.
+     * @type {Array}
+     */
     featureEditor.featureEditDetails = [];
 
     /**
@@ -267,9 +273,11 @@
                     //Create a simple array of field names that are editable
                     for(var item in featureEditor.featureLayer.fields){
                         try{
-                            var name = featureEditor.featureLayer.fields[parseFloat(item)].name;
                             var editable = featureEditor.featureLayer.fields[parseFloat(item)].editable;
-                            if(editable == true)featureEditor.featureEditDetails.push(name);
+                            if(editable == true){
+                                var name = featureEditor.featureLayer.fields[parseFloat(item)].name;
+                                featureEditor.featureEditDetails.push(name);
+                            }
                         }
                         catch(err){
                             console.log("init: " + err.message);
@@ -334,12 +342,18 @@
                 var i = 0;
                 var arr = [];
                 var columnArr = [];
+                var length = featureEditor.featureEditDetails.length;
 
                 var gridObj = {};
                 for (var key in featureSet.features[0].attributes){
                     console.log(key);
                     arr[i] = key;
-                    var editTest = featureEditor.featureEditDetails.indexOf(key);
+
+                    //See if there are any editable features.
+                    var editTest = -1;
+                    if(length > 0){
+                        editTest = featureEditor.featureEditDetails.indexOf(key);
+                    }
 
                     //Item is editable if != -1
                     if(editTest != -1){
@@ -646,6 +660,7 @@
             //Check if object is not editable. If yes then exit edit mode.
             if(cell.children.length == 0){
                 cell.style.backgroundColor = "#FFFF00";
+                cell.style.color = "#FF0000";
                 return;
             }
 

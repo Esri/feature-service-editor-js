@@ -154,7 +154,7 @@
      * Library for enabled ArcGIS FeatureService/FeatureLayer editing.
      *
      * @author Andy Gup
-     * @version 0.3
+     * @version 0.3.1
      * @type {Object}
      */
     var featureEditor = featureEditor || {};
@@ -171,6 +171,7 @@
     featureEditor.dgridCellClickListener = null;
     featureEditor.outFields = null;
     featureEditor.loadingIcon = null;
+    featureEditor.featureEditDetails = [];
 
     /**
      * Local ENUMs (Constants)
@@ -258,9 +259,23 @@
                 var query = new Query();
                 query.where = queryString;
                 //query.timeExtent = new esri.TimeExtent(new Date("01/01/2007 UTC"));
-                featureEditor.featureLayer.queryIds(query, function (objectIds) {
+                var deferred = new Deferred();
+                deferred = featureEditor.featureLayer.queryIds(query, function (objectIds) {
                     featureEditor.fetchRecords(objectIds);
-                });
+                }).then(dojo.hitch(window,function(){
+
+                    //Create a simple array of field names that are editable
+                    for(var item in featureEditor.featureLayer.fields){
+                        try{
+                            var name = featureEditor.featureLayer.fields[parseFloat(item)].name;
+                            var editable = featureEditor.featureLayer.fields[parseFloat(item)].editable;
+                            if(editable == true)featureEditor.featureEditDetails.push(name);
+                        }
+                        catch(err){
+                            console.log("init: " + err.message);
+                        }
+                    }
+                }));
 
             }
             else{
@@ -324,13 +339,26 @@
                 for (var key in featureSet.features[0].attributes){
                     console.log(key);
                     arr[i] = key;
-                    columnArr[i] = editor({
-                        label:key.toString(),
-                        field:key.toString(),
-                        hidden: false,
-                        editor:"text",
-                        editOn:"dblclick"
-                    });
+                    var editTest = featureEditor.featureEditDetails.indexOf(key);
+
+                    //Item is editable if != -1
+                    if(editTest != -1){
+
+                        columnArr[i] = editor({
+                            label:key.toString(),
+                            field:key.toString(),
+                            hidden: false,
+                            editor:"text",
+                            editOn:"dblclick"
+                        });
+                    }
+                    else{
+                        columnArr[i] = {
+                            label:key.toString(),
+                            field:key.toString(),
+                            hidden:false
+                        }
+                    }
                     i++;
                 }
 
@@ -615,7 +643,14 @@
             var undoBtn = null;
             var undoBtnCell = null;
 
+            //Check if object is not editable. If yes then exit edit mode.
+            if(cell.children.length == 0){
+                cell.style.backgroundColor = "#FFFF00";
+                return;
+            }
+
             //Check to see if clicked item is within the OBJECTID column
+            //Eliminates possibility of OBJECTID accidentally being set to editable = true
             if(typeof(cell.children[0].name) != "undefined"){
                 var columnName = cell.children[0].name.toLowerCase();
                 var prevent = featureEditor.localEnum().PREVENT_OBJECTID_EDIT;

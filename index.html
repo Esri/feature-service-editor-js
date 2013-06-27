@@ -154,7 +154,7 @@
      * Library for enabled ArcGIS FeatureService/FeatureLayer editing.
      *
      * @author Andy Gup
-     * @version 0.3.3
+     * @version 0.3.3.1
      * @type {Object}
      */
     var featureEditor = featureEditor || {};
@@ -657,23 +657,13 @@
             var undoBtn = null;
             var undoBtnCell = null;
 
-            //Check if object is not editable. If yes then exit edit mode.
-            if(cell.children.length == 0){
-                cell.style.backgroundColor = "#FFFF00";
-                cell.style.color = "#FF0000";
-                return;
-            }
 
-            //Check to see if clicked item is within the OBJECTID column
-            //Eliminates possibility of OBJECTID accidentally being set to editable = true
-            if(typeof(cell.children[0].name) != "undefined"){
-                var columnName = cell.children[0].name.toLowerCase();
-                var prevent = featureEditor.localEnum().PREVENT_OBJECTID_EDIT;
-                if(columnName == "objectid" && prevent == true ){
-                    featureEditor.revertRecord();
-                    console.log("_renderCellHandler: You cannot edit objectid!");
+            if(cell.children.length == 0){
+                    //uneditable feature
+                    cell.style.backgroundColor = "#FFFF00";
+                    cell.style.color = "#FF0000";
+                    //featureEditor.revertRecord();
                     return;
-                }
             }
 
             if(object.element.hasChildNodes() && typeof(cell.parentNode.cells) == "undefined"){
@@ -739,6 +729,7 @@
                     console.log(stuff.element.innerHTML);
                     featureEditor.utils._renderCellHandler(stuff.row,null,stuff.element);
                 }
+
             });
 
 

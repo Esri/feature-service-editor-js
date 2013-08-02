@@ -1,6 +1,6 @@
 #feature-service-editor
 
-This ready-to-go JavaScript prototype provides very basic SQL-like capabilities for browsing, modifying and deleting data in "point" based feature services with or without a map. It is intended for reading any valid ArcGIS FeatureService. 
+This ready-to-go JavaScript prototype provides very basic SQL-like capabilities to add, delete, edit or search for data in "point" based feature services with or without a map. It is intended for reading any valid ArcGIS FeatureService. 
 
 Use this application as-is, embed it in your own application, extend or modify it to meet your needs. Basically have fun, and feedback or contributions are appreciated!
 

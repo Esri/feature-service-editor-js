@@ -1,19 +1,29 @@
 #feature-service-editor
 
-This ready-to-go JavaScript prototype provides very basic SQL-like capabilities for browsing and editing a feature service with or without a map. It is intended for reading any valid ArcGIS FeatureService. 
+This ready-to-go JavaScript prototype provides very basic SQL-like capabilities for browsing, modifying and deleting data in "point" based feature services with or without a map. It is intended for reading any valid ArcGIS FeatureService. 
 
-In the current version you can edit one field at a time, it does not include batch update capabilities (yet). 
+Use this application as-is, embed it in your own application, extend or modify it to meet your needs. Basically have fun, and feedback or contributions are appreciated!
 
-Use this application as-is, embed it in your own application, extend or modify it to meet your needs. Basically have fun, and feedback is appreciated!
-
-## Instructions (Five easy steps)
+## Instructions (Four easy steps)
 
 1. Copy-and-paste a FeatureService endpoint into the field labeled "Feature Service". 
 	* **IMPORTANT**: The FeatureService must have an <code>OBJECTID</code> field.
-2. Assign a Query String. <code>"1=1"</code> is the equivalent of <code>"*"</code> to retrieve all records.
-3. Click the "Load" button.
-4. Double click on any field to enable the edit mode. Edit the field. For that row the Save and Undo buttons should become visible and enabled.
-5. Select "Save" or "Undo".
+2. Click the "Load" button.
+3. Double click on any field to enable the edit mode. Edit the field. For that row the Save, Undo and Delete buttons should become visible and enabled.
+4. When you are done editing select "Save", "Undo" or "Delete".
+
+## To add a new row of data
+Allows for the ability to add one new row of data at a time.
+
+1. After loading a feature service, select the "Add Record" button. This creates a new grid that you can use to enter the data. It should be highlighted with yellow cells.
+2. Enter your changes in the new grid.
+3. When you are done adding data select "Save" or "Undo". 
+4. Or, if you want to delete your changes without saving them select the "Remove New Record" button. 
+
+## Using Query String
+
+Query String lets you set the SQL string for returning data. When left blank it will return all data. As an example, to data for record 115 would be to specify: objectId='115'.
+
 
 ## To hook your map to grid events
 
@@ -22,6 +32,10 @@ Use this application as-is, embed it in your own application, extend or modify i
 ## Main Editor Window
 
 ![](screenshot.png)
+
+## Add Record Window
+
+![] (screenshot4.png)
 
 ## Control Panel
 
@@ -46,7 +60,7 @@ Use this application as-is, embed it in your own application, extend or modify i
 
 ## Issues
 
-Find a bug or want to request a new feature?  Please let us know by submitting an Issue on this repo.
+Find a bug or want to request a new feature?  Please use the [submit new Issue](https://github.com/Esri/feature-service-editor-js/issues/new) feature on this repo.
 
 ## Contributing
 

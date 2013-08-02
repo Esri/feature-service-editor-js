@@ -1,5 +1,20 @@
 # feature-service-editor-js - Changelog
 
+## Version 0.4 - Aug. 2, 2013
+- **New:** 
+	- Add one new row of data at a time.
+	- Delete one row of data at a time.
+	- Stop feature service loading if geometry != "point". This app version only handles point based features.
+	- Internal: Remove newly added local row from the store via removeNewLocalRecord().
+	- Internal: Added a UI (user interface)namespace for helping to centralize major UI functions: featureEditor.ui
+	- Internal: Added a boolean to _setListeners(true) to enable/disable ability to store the current row object in featureEditor.currentRow.
+
+- **Minor Breaking Changes:** 
+	- Changed name of featureEditor.revertRecord to featureEditor.utils.revertLocalRecord. This makes way for future functionality that allows for reverting remote records and keeps utils reserved for local changes.
+	- Renamed all div ids using the dash "-" pattern. Still have some renaming to do on other divs.
+
+**NOTE**: This version does not provide complete field type validation when adding a new entry.
+
 ## Version 0.3.3 - June 26, 2013
 - Disabled ability to double click on Save or Undo buttons.
 

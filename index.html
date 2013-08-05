@@ -198,7 +198,7 @@
      * This functionality can be wired into a map.
      *
      * @author Andy Gup
-     * @version 0.4
+     * @version 0.4.1
      * @type {Object} featureEditor Class.
      */
     var featureEditor = featureEditor || {};
@@ -304,14 +304,15 @@
                 featureEditor.featureLayer = null;
                 featureEditor.masterRecordArr = [];
                 featureEditor.restEndpoint = null;
-                featureEditor.dgridRowClickListener = null;
-                featureEditor.dgridCellClickListener = null;
                 featureEditor.dgridAddCellClickListener = null;
                 featureEditor.spatialReference = null;
                 featureEditor.xField = null;
                 featureEditor.yField = null;
 
             }
+
+            if(featureEditor.dgridRowClickListener != null)featureEditor.dgridRowClickListener.remove();
+            if(featureEditor.dgridCellClickListener != null)featureEditor.dgridCellClickListener.remove();
 
             //If the add new feature grid is visible then shut it down
             if(featureEditor.addGrid != null){
@@ -1143,11 +1144,6 @@
         featureEditor.utils.updateGrid = function(featureSet, pageNumber,/* Array */ arr) {
             var data = [];
 
-            //Attempt to circumvent a but where occasionally editing doesn't work
-            //when you double click on a cell. I suspect it has something to do with
-            //either the order in which listeners are created or a listener improperly
-            //consuming an event and not allowing it bubble.
-            featureEditor.utils._removeListeners();
             featureEditor.utils._setListeners();
 
             dojo.forEach(featureSet.features, function (entry, i) {
@@ -1374,6 +1370,10 @@
          * @private
          */
         featureEditor.utils._setListeners = function(){
+
+            if(featureEditor.dgridRowClickListener != null)featureEditor.dgridRowClickListener.remove();
+            if(featureEditor.dgridCellClickListener != null)featureEditor.dgridCellClickListener.remove();
+
             featureEditor.dgridRowClickListener = featureEditor.grid.on(".dgrid-row:click",function(event){
                 var stuff = featureEditor.grid.row(event);
                 console.log(stuff.data);
@@ -1398,24 +1398,6 @@
 //                var row = controller.grid.row(event);
 //                console.log("mouseover " + row);
 //            });
-        }
-
-        /**
-         * Remove dgridRow and dgridCell listeners
-         * @private
-         */
-        featureEditor.utils._removeListeners = function(){
-            featureEditor.dgridRowClickListener = null;
-            featureEditor.dgridCellClickListener = null;
-        }
-
-        /**
-         * Remove dgridAddRowClickListenter and dgridAddCellClickListener
-         * @private
-         */
-        featureEditor.utils._removeAddGridListeners = function(){
-            featureEditor.dgridAddRowClickListener = null;
-            featureEditor.dgridAddCellClickListener = null;
         }
 
         featureEditor.utils._setAddGridListeners = function(/* boolean */ enableRow){

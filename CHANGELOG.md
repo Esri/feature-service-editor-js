@@ -1,5 +1,8 @@
 # feature-service-editor-js - Changelog
 
+## Version 0.4.1 - Aug. 5, 2013
+- Fixed a memory leak whereby old dgrid click and dblclick listeners were not being properly destroyed when the grid was refreshed.
+
 ## Version 0.4 - Aug. 2, 2013
 - **New:** 
 	- Add one new row of data at a time.

@@ -6,7 +6,7 @@ Use this application as-is, embed it in your own application, extend or modify i
 
 ## Instructions (Four easy steps)
 
-1. Copy-and-paste a FeatureService endpoint into the field labeled "Feature Service". 
+1. Copy-and-paste a FeatureService endpoint into the field labeled "Feature Service", or use the pulldown list and set up your own FeatureServices using the ComboBox.
 	* **IMPORTANT**: The FeatureService must have an <code>OBJECTID</code> field.
 2. Click the "Load" button.
 3. Double click on any field to enable the edit mode. Edit the field. For that row the Save, Undo and Delete buttons should become visible and enabled.

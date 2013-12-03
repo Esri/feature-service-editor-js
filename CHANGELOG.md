@@ -1,5 +1,11 @@
 # feature-service-editor-js - Changelog
 
+## Version 0.5 - Dec. 3, 2013
+- Fixed null attribute bug. If a null attribute existed the grid would fail to load.
+- Fixed minor bugs related to how the library determined parameters from the Feature Service, for example it now uses the correct syntax to determine the Feature Service's spatialReference.
+- **New:** 
+	- Added a pulldown list for URLs. Now the apps can be used to either manage multiple Feature Service, or you can still paste a URL into the field and click load.
+
 ## Version 0.4.1 - Aug. 5, 2013
 - Fixed a memory leak whereby old dgrid click and dblclick listeners were not being properly destroyed when the grid was refreshed.
 

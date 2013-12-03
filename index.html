@@ -84,10 +84,6 @@
         padding-right: 10px;
     }
 
-    #fsEndpoint{
-        width: 350px;
-    }
-
     #load-btn {
         background-color: #FF0000;
         color: #ffffff;
@@ -116,6 +112,13 @@
     .entryDivFieldCol {
         float: left;
         padding: 4px;
+    }
+
+    .entryEditableField{
+        float: left;
+        padding: 4px;
+        color: #FF0000;
+        font-weight: bold;
     }
 
     .claro .ui-state-active:hover {
@@ -254,6 +257,7 @@
         "esri/layers/FeatureLayer",
         "esri/tasks/query",
         "dijit/form/Button",
+        "dijit/form/ComboBox",
         "dojo/number",
         "dgrid/OnDemandGrid",
         "dgrid/Selection",
@@ -270,9 +274,30 @@
         "dojo/Deferred",
         "dojox/widget/Standby",
         "dojo/domReady!"],
-        function(declare,FeatureLayer,Query,Button,number,OnDemandGrid,ColumnHider,
+        function(declare,FeatureLayer,Query,Button,ComboBox,number,OnDemandGrid,ColumnHider,
                  Selection,CellSelection,mouseUtil,Keyboard,editor,Memory,on,when,request,query,Deferred,Standby){
 
+            //Set up the URL pulldown list so that you can manage more than one Feature Service.
+            var urlStore = new Memory({
+                data: [
+                    {name:"http://services.arcgis.com/IZtlGBUe4KTzLOl4/arcgis/rest/services/BPX_RTD_BusStops2/FeatureServer/0",
+                        id:"http://services.arcgis.com/IZtlGBUe4KTzLOl4/arcgis/rest/services/BPX_RTD_BusStops2/FeatureServer/0"},
+                    {name:"http://services.arcgis.com/IZtlGBUe4KTzLOl4/ArcGIS/rest/services/BPX_RTD_BusStops3/FeatureServer/0",
+                        id:"http://services.arcgis.com/IZtlGBUe4KTzLOl4/ArcGIS/rest/services/BPX_RTD_BusStops3/FeatureServer/0"}
+                ]
+            });
+
+            //http://dojotoolkit.org/reference-guide/1.9/dijit/form/ComboBox.html
+            //NOTE: may not work properly with IE8!
+            var comboBox = new ComboBox({
+                id: "fsEndpoint",
+                name: "url",
+                value: "http://services.arcgis.com/IZtlGBUe4KTzLOl4/arcgis/rest/services/BPX_RTD_BusStops2/FeatureServer/0",
+                store: urlStore,
+                searchAttr: "name"
+            }, "fsEndpoint");
+
+            dijit.byId("fsEndpoint").set('style',{width: '350px'});
 
         /**
          * Begin by initializing the library here.
@@ -452,13 +477,13 @@
             featureEditor.featureLayer.queryFeatures(query, function (featureSet) {
 
                 //Verify that feature service only contains point data
-                if(featureSet != null && featureSet.features.length > 0 && featureSet.features[0].geometry.type != "point"){
+                if(featureSet != null && featureSet.features.length > 0 && featureSet.geometryType != "esriGeometryPoint"){
                     featureEditor.loadingIcon.hide();
                     alert("Can only load point based feature services, sorry.");
                     return;
                 }
 
-                featureEditor.spatialReference = featureSet.features[0].geometry.spatialReference;
+                featureEditor.spatialReference = featureSet.spatialReference;
 
                 var i = 0;
                 var arr = [];
@@ -1152,7 +1177,12 @@
 
                 for (var item in arr){
                     var node0 = arr[item].toString();
-                    entryObject[node0] = entry.attributes[node0].toString();
+                    if(entry.attributes[node0] === null){
+                        entryObject[node0] = entry.attributes[node0];
+                    }
+                    else{
+                        entryObject[node0] = entry.attributes[node0].toString();
+                    }
                 }
 
                 featureEditor.masterRecordArr[i] = {
@@ -1175,6 +1205,7 @@
             dojo.byId("grid-legend-parent").style.visibility = "visible";
             dojo.byId("grid-legend-parent").style.position = "relative";
 
+            //Call the esri.layers.FeatureLayer.isEditable() method
             featureEditor.featureLayer.isEditable() == true ?
                 featureEditor.ui.handleAddRecord(true) :
                 featureEditor.ui.handleAddRecord(false);
@@ -1468,8 +1499,9 @@
                 dojo.style("add-new-record-btn","color","#FF0000");
             }
             else{
-                dijit.byId("remove-new-record-btn").set("disabled",false);
-                dojo.style("remove-new-record-btn","color","#FF0000");
+                dojo.byId("entryEditableField").innerHTML = "NOT EDITABLE";
+                dijit.byId("remove-new-record-btn").set("disabled",true);
+                dojo.style("remove-new-record-btn","color","#C0C0C0");
                 dijit.byId("add-new-record-btn").set("disabled",true);
                 dojo.style("add-new-record-btn","color","#C0C0C0");
             }
@@ -1501,7 +1533,8 @@
     <div style="border-color: white; border: 1px solid #e1e1e1;">
         <div>
             <div class="entryDivNameCol">Feature Services</div>
-            <div class="entryDivFieldCol"><input id="fsEndpoint" type="text"  value="http://services.arcgis.com/IZtlGBUe4KTzLOl4/arcgis/rest/services/BPX_RTD_BusStops2/FeatureServer/0" /></div>
+            <div class="entryDivFieldCol"><input id="fsEndpoint" type="text"  /></div>
+            <div class="entryEditableField" id="entryEditableField"></div>
         </div>
         <div class="clear" style="clear: both"></div>
         <div >

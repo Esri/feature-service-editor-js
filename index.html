@@ -43,6 +43,8 @@
     var dgridCellClickListener = null;
     var dgridAddCellClickListener = null;
 
+    var isFeatureLayerEditable = false;
+
     var featureEditor = featureEditor || {};
     featureEditor.utils = {};
     featureEditor.ui = {};
@@ -213,6 +215,16 @@
                     console.log("queryIds: Error: " + err.code + ", " + err.details[0]);
                     alert("No results found. " + err.details[0]);
                 }).then(dojo.hitch(window,function(){
+
+                    isFeatureLayerEditable = featureEditor.featureLayer.isEditable();
+
+                    if(isFeatureLayerEditable == true) {
+                        featureEditor.ui.handleAddRecord(true)
+                    }
+                    else {
+                        featureEditor.ui.handleAddRecord(false);
+                        dojo.byId("entryEditableField").innerHTML = "NOT EDITABLE";
+                    }
 
                     //Create a simple array of field names that are editable
                     for(var item in featureEditor.featureLayer.fields){
@@ -973,7 +985,6 @@
                      noDataMessage:'Nothing found.'*/
                 }, 'add-grid');
 
-
                 featureEditor.utils._setAddGridListeners(false);
 
             }
@@ -1249,6 +1260,10 @@
         }
 
         featureEditor.utils._setAddGridListeners = function(/* boolean */ enableRow){
+
+            dijit.byId("remove-new-record-btn").set("disabled",false);
+            dojo.style("remove-new-record-btn","color","#FF0000");
+
             featureEditor.dgridAddRowClickListener = featureEditor.addGrid.on(".dgrid-row:click",function(event){
                 var stuff = featureEditor.addGrid.row(event);
                 console.log(stuff.data);
@@ -1316,9 +1331,8 @@
                 dojo.style("add-new-record-btn","color","#FF0000");
             }
             else{
-                dojo.byId("entryEditableField").innerHTML = "NOT EDITABLE";
-                dijit.byId("remove-new-record-btn").set("disabled",true);
-                dojo.style("remove-new-record-btn","color","#C0C0C0");
+                dijit.byId("remove-new-record-btn").set("disabled",false);
+                dojo.style("remove-new-record-btn","color","#FF0000");
                 dijit.byId("add-new-record-btn").set("disabled",true);
                 dojo.style("add-new-record-btn","color","#C0C0C0");
             }

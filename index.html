@@ -11,11 +11,11 @@
 <link rel="stylesheet" href="http://js.arcgis.com/3.10/js/dojo/dijit/themes/claro/claro.css">
 <link rel="stylesheet" href="http://js.arcgis.com/3.10/js/dojo/dojox/grid/resources/Grid.css">
 <link rel="stylesheet" href="http://js.arcgis.com/3.10/js/dojo/dojox/grid/resources/claroGrid.css">
-<link rel="stylesheet" href="template/css/editableDgrid.css">
+<link rel="stylesheet" href="css/editableDgrid.css">
 
 <script>var dojoConfig = { parseOnLoad:true, isDebug:true };</script>
 <script src="http://js.arcgis.com/3.10/"></script>
-</script>
+
 <script>
     "use strict";
     /**
@@ -24,10 +24,11 @@
      * This functionality can be wired into a map.
      *
      * @author Andy Gup
-     * @version 0.5
+     * @version 0.6
      * @type {Object} featureEditor Class.
      */
 
+    var loadingIcon = null;
     var featureServiceColumnNamesArr = [];
 
     /**
@@ -38,6 +39,9 @@
     var featureServiceEditableDetails = [];
 
     var dgridMasterRecordArr = [];
+    var dgridRowClickListener = null;
+    var dgridCellClickListener = null;
+    var dgridAddCellClickListener = null;
 
     var featureEditor = featureEditor || {};
     featureEditor.utils = {};
@@ -52,11 +56,7 @@
     featureEditor.currentAddRow = null;
     featureEditor.featureLayer = null;
     featureEditor.restEndpoint = null;
-    featureEditor.dgridRowClickListener = null;
-    featureEditor.dgridCellClickListener = null;
-    featureEditor.dgridAddCellClickListener = null;
     featureEditor.outFields = null;
-    featureEditor.loadingIcon = null;
     featureEditor.spatialReference = null;
     featureEditor.xField = null; //internal - field string name containing x geometry value
     featureEditor.yField = null; //internal - field string name containing y geometry value;
@@ -136,8 +136,8 @@
 
             dojo.byId("grid").style.visibility = "visible";
 
-            featureEditor.loadingIcon = featureEditor.utils._createStandbyIcon("grid");
-            featureEditor.loadingIcon.show();
+            loadingIcon = featureEditor.utils._createStandbyIcon("grid");
+            loadingIcon.show();
 
             //Attempt a soft reset of grid data without having to recreate from scratch.
             if(featureEditor.grid != null){
@@ -153,18 +153,20 @@
                 featureEditor.currentAddRow = null;
                 featureEditor.featureLayer = null;
                 featureEditor.restEndpoint = null;
-                featureEditor.dgridAddCellClickListener = null;
                 featureEditor.spatialReference = null;
                 featureEditor.xField = null;
                 featureEditor.yField = null;
 
                 featureServiceColumnNamesArr = [];
                 dgridMasterRecordArr = [];
+                dgridAddCellClickListener = null;
+                dgridRowClickListener = null;
+                dgridCellClickListener = null;
 
             }
 
-            if(featureEditor.dgridRowClickListener != null)featureEditor.dgridRowClickListener.remove();
-            if(featureEditor.dgridCellClickListener != null)featureEditor.dgridCellClickListener.remove();
+            if(dgridRowClickListener != null)dgridRowClickListener.remove();
+            if(dgridCellClickListener != null)dgridCellClickListener.remove();
 
             //If the add new feature grid is visible then shut it down
             if(featureEditor.addGrid != null){
@@ -204,10 +206,10 @@
                     }
                     else{
                         alert("No results found.");
-                        featureEditor.loadingIcon.hide();
+                        loadingIcon.hide();
                     }
                 },function(err){
-                    featureEditor.loadingIcon.hide();
+                    loadingIcon.hide();
                     console.log("queryIds: Error: " + err.code + ", " + err.details[0]);
                     alert("No results found. " + err.details[0]);
                 }).then(dojo.hitch(window,function(){
@@ -255,7 +257,7 @@
                     featureEditor.grid.showMessage("No matching records");
                 }
 
-                featureEditor.loadingIcon.hide();
+                loadingIcon.hide();
                 alert("No record found.");
             }
         }
@@ -290,7 +292,7 @@
                 return;
             }
 
-            featureEditor.loadingIcon.show();
+            loadingIcon.show();
 
             var begin = featureEditor.pageInfo.recordsPerPage * (pageNumber - 1);
             var end = begin + featureEditor.pageInfo.recordsPerPage;
@@ -305,7 +307,7 @@
 
                 //Verify that feature service only contains point data
                 if(featureSet != null && featureSet.features.length > 0 && featureSet.geometryType != "esriGeometryPoint"){
-                    featureEditor.loadingIcon.hide();
+                    loadingIcon.hide();
                     alert("Can only load point based feature services, sorry.");
                     return;
                 }
@@ -494,17 +496,17 @@
                             featureEditor.currentAddRecord
                     );
 
-                    featureEditor.loadingIcon.show();
+                    loadingIcon.show();
                     featureEditor.insertNewFeature([graphic],null,true);
 
                 }
                 catch(err){
-                    featureEditor.loadingIcon.hide();
+                    loadingIcon.hide();
                     alert("Unable to complete add new record. " + err.message);
                 }
             }
             else{
-                featureEditor.loadingIcon.hide();
+                loadingIcon.hide();
                 alert("Unable to complete add new record. No valid values.");
             }
         }
@@ -568,7 +570,7 @@
                         return false;
                     }
 
-                    featureEditor.loadingIcon.show();
+                    loadingIcon.show();
 
                     //var data =  JSON.stringify([graphic]);
                     //featureEditor.applyEdits(data);
@@ -576,7 +578,7 @@
                         console.log("updateRecord: " + updateResult[0].objectId + ", Success: " + updateResult[0].success);
 
                         featureEditor.grid.refresh();
-                        featureEditor.loadingIcon.hide();
+                        loadingIcon.hide();
                     },
                     function(error){
                         var message = "";
@@ -585,7 +587,7 @@
                         console.log("updateRecord: " + error.message + ", " + message);
 
                         featureEditor.grid.refresh();
-                        featureEditor.loadingIcon.hide();
+                        loadingIcon.hide();
 
                         alert("Unable to update. " + error.message + ", " + message);
 
@@ -624,14 +626,14 @@
                     featureEditor.queryRecordsByPage(featureEditor.pageInfo.currentPage);
                     //featureEditor.grid.save();
                     console.log("insertNewFeature successful: " + response);
-                    featureEditor.loadingIcon.hide();
+                    loadingIcon.hide();
 
                     if(confirm)alert("Feature #" + response[0].objectId + " was successfully added." );
                 }
                 else{
                     console.log("insertNewFeature: There was a problem with writing the record to database");
                     featureEditor.grid.refresh();
-                    featureEditor.loadingIcon.hide();
+                    loadingIcon.hide();
                     alert("There was a problem and feature was not added.");
                 }
             },function(error){
@@ -643,7 +645,7 @@
                 console.log("insertNewFeature: " + error.message + ", " + message);
 
                 featureEditor.grid.refresh();
-                featureEditor.loadingIcon.hide();
+                loadingIcon.hide();
 
                 alert("There was a problem adding a new feature: " + error.message + ", " + message);
             });
@@ -688,7 +690,7 @@
                     //featureEditor.queryRecordsByPage(1);
                     //featureEditor.grid.save();
                     console.log("deleteFeatures successful on ObjectID: " + deletes[0].objectId + ", success: " + deletes[0].success);
-                    featureEditor.loadingIcon.hide();
+                    loadingIcon.hide();
 
                     featureEditor.init(false);
 
@@ -700,7 +702,7 @@
 
                 }
 
-                featureEditor.loadingIcon.hide();
+                loadingIcon.hide();
 
             },function(error){
                 //NOTE: There is a bug in which the correct error message is not displayed
@@ -711,7 +713,7 @@
                 console.log("deleteFeature: " + error.message + ", " + message);
 
                 featureEditor.grid.refresh();
-                featureEditor.loadingIcon.hide();
+                loadingIcon.hide();
 
                 alert("There was a problem deleting: " + error.message + ", " + message);
             });
@@ -745,13 +747,13 @@
                     featureEditor.queryRecordsByPage(featureEditor.pageInfo.currentPage);
                     featureEditor.grid.save();
                     console.log("applyEdits successful: " + response);
-                    featureEditor.loadingIcon.hide();
+                    loadingIcon.hide();
                 }
                 else{
                     console.log("applyEdits: There was a problem with updating the record");
                     alert("Unable to update record: Error " + t.updateResults[0].error.code + ", " + t.updateResults[0].error.description);
                     featureEditor.grid.refresh();
-                    featureEditor.loadingIcon.hide();
+                    loadingIcon.hide();
                 }
 
             }, function(error){
@@ -761,7 +763,7 @@
                 console.log("updateRecord: " + error.message + ", " + message);
                 alert("There was a problem applying edits." + error.message + ", " + message);
                 featureEditor.grid.refresh();
-                featureEditor.loadingIcon.hide();
+                loadingIcon.hide();
             })
         }
 
@@ -1041,7 +1043,7 @@
             featureEditor.pageInfo.currentPage = pageNumber;
             dojo.byId("pageInfo").innerHTML = featureEditor.pageInfo.currentPage + "/" + featureEditor.pageInfo.totalPages;
 
-            featureEditor.loadingIcon.hide();
+            loadingIcon.hide();
         }
 
         /**
@@ -1229,16 +1231,16 @@
          */
         featureEditor.utils._setListeners = function(){
 
-            if(featureEditor.dgridRowClickListener != null)featureEditor.dgridRowClickListener.remove();
-            if(featureEditor.dgridCellClickListener != null)featureEditor.dgridCellClickListener.remove();
+            if(dgridRowClickListener != null)dgridRowClickListener.remove();
+            if(dgridCellClickListener != null)dgridCellClickListener.remove();
 
-            featureEditor.dgridRowClickListener = featureEditor.grid.on(".dgrid-row:click",function(event){
+            dgridRowClickListener = featureEditor.grid.on(".dgrid-row:click",function(event){
                 var stuff = featureEditor.grid.row(event);
                 console.log(stuff.data);
                 featureEditor.currentRecord = stuff.data;
             });
 
-            featureEditor.dgridCellClickListener = featureEditor.grid.on(".dgrid-cell:dblclick",function(event){
+            dgridCellClickListener = featureEditor.grid.on(".dgrid-cell:dblclick",function(event){
                 var stuff = featureEditor.grid.cell(event);
 
                 var undo =  typeof (stuff.column.undo);
@@ -1266,7 +1268,7 @@
                 if(enableRow == true)featureEditor.currentAddRow = this;
             });
 
-            featureEditor.dgridAddCellClickListener = featureEditor.addGrid.on(".dgrid-cell:dblclick",function(event){
+            dgridAddCellClickListener = featureEditor.addGrid.on(".dgrid-cell:dblclick",function(event){
                 var stuff = featureEditor.addGrid.cell(event);
 
                 var undo =  typeof (stuff.column.undo);

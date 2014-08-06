@@ -367,9 +367,6 @@
                                 //alert('hi');
                                 featureEditor.addNewRecord();
                             }
-                            var b = event.currentTarget.children[0].id;
-                            var c = dijit.byId(b);
-                            c.set('disabled',true);
                         })
                     },cell.appendChild(document.createElement("div")));
                 }};
@@ -390,9 +387,6 @@
                             else{
                                 featureEditor.utils.revertLocalAddRecord();
                             }
-                            var b = event.currentTarget.children[0].id;
-                            var c = dijit.byId(b);
-                            c.set('disabled',true);
                         })
                     },cell.appendChild(document.createElement("div")));
                 }};
@@ -417,12 +411,6 @@
                                     featureEditor.utils.revertLocalRecord();
                                 }
                             }
-                            else{
-                                //featureEditor.utils.revertLocalAddRecord();
-                            }
-                            var b = event.currentTarget.children[0].id;
-                            var c = dijit.byId(b);
-                            c.set('disabled',true);
                         })
                     },cell.appendChild(document.createElement("div")));
                 }};

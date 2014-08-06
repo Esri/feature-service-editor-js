@@ -51,7 +51,7 @@ body {
 
 .grid2 .dgrid-cell {
     width: 80px;
-    color: #ffffff;
+    color: red;
 }
 
 .grid2 th.dgrid-cell{

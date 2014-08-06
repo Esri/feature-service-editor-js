@@ -194,7 +194,7 @@
 <script src="http://js.arcgis.com/3.10/"></script>
 </script>
 <script>
-
+    "use strict";
     /**
      * Library for rapid, table-based editing of a point-based ArcGIS FeatureServices.
      * With this library you can search, modify, add or delete points.
@@ -204,12 +204,23 @@
      * @version 0.5
      * @type {Object} featureEditor Class.
      */
+
+    var featureServiceColumnNamesArr = [];
+
+    /**
+     * An array of the editable fields within the featureLayer.
+     * By default, fields with the property editable = false are automatically excluded.
+     * @type {Array}
+     */
+    var featureServiceEditableDetails = [];
+
+    var dgridMasterRecordArr = [];
+
     var featureEditor = featureEditor || {};
     featureEditor.utils = {};
     featureEditor.ui = {};
     featureEditor.grid = null;
     featureEditor.addGrid = null;
-    featureEditor.columnNamesArr = [];
     featureEditor.pageInfo = null;
     featureEditor.store = null;
     featureEditor.addStore = null;
@@ -217,7 +228,6 @@
     featureEditor.currentAddRecord = null;
     featureEditor.currentAddRow = null;
     featureEditor.featureLayer = null;
-    featureEditor.masterRecordArr = [];
     featureEditor.restEndpoint = null;
     featureEditor.dgridRowClickListener = null;
     featureEditor.dgridCellClickListener = null;
@@ -227,13 +237,6 @@
     featureEditor.spatialReference = null;
     featureEditor.xField = null; //internal - field string name containing x geometry value
     featureEditor.yField = null; //internal - field string name containing y geometry value;
-
-    /**
-     * An array of the editable fields within the featureLayer.
-     * By default, fields with the property editable = false are automatically excluded.
-     * @type {Array}
-     */
-    featureEditor.featureEditDetails = [];
 
     /**
      * Local ENUMs (Constants)
@@ -320,19 +323,20 @@
                 featureEditor.grid.refresh();
                 featureEditor.pageInfo = null;
                 featureEditor.grid = null;
-                featureEditor.columnNamesArr = [];
                 featureEditor.pageInfo = null;
                 featureEditor.store = null;
                 featureEditor.addStore = null;
                 featureEditor.currentRecord = null;
                 featureEditor.currentAddRow = null;
                 featureEditor.featureLayer = null;
-                featureEditor.masterRecordArr = [];
                 featureEditor.restEndpoint = null;
                 featureEditor.dgridAddCellClickListener = null;
                 featureEditor.spatialReference = null;
                 featureEditor.xField = null;
                 featureEditor.yField = null;
+
+                featureServiceColumnNamesArr = [];
+                dgridMasterRecordArr = [];
 
             }
 
@@ -398,7 +402,7 @@
                             if(lcName.indexOf("y") != -1 && lcName.substring(0,1) == "y") featureEditor.yField = name;
 
                             if(editable == true){
-                                featureEditor.featureEditDetails.push(name);
+                                featureServiceEditableDetails.push(name);
                             }
                         }
                         catch(err){
@@ -488,7 +492,7 @@
                 var i = 0;
                 var arr = [];
                 var columnArr = [];
-                var length = featureEditor.featureEditDetails.length;
+                var length = featureServiceEditableDetails.length;
 
                 for (var key in featureSet.features[0].attributes){
                     console.log(key);
@@ -497,7 +501,7 @@
                     //See if there are any editable features.
                     var editTest = -1;
                     if(length > 0){
-                        editTest = featureEditor.featureEditDetails.indexOf(key);
+                        editTest = featureServiceEditableDetails.indexOf(key);
                     }
 
                     //Item is editable if != -1
@@ -598,7 +602,7 @@
                     },cell.appendChild(document.createElement("div")));
                 }};
 
-                featureEditor.columnNamesArr = columnArr;
+                featureServiceColumnNamesArr = columnArr;
 
                 if(featureEditor.grid == null){
                     featureEditor.utils.createGrid(columnArr);
@@ -718,20 +722,20 @@
 
                 try{
 
-                    if(featureEditor.masterRecordArr.length == 1){
+                    if(dgridMasterRecordArr.length == 1){
                         graphic = new esri.Graphic(
-                                featureEditor.masterRecordArr[0].geometry,
-                                featureEditor.masterRecordArr[0].symbol,
+                                dgridMasterRecordArr[0].geometry,
+                                dgridMasterRecordArr[0].symbol,
                                 featureEditor.currentRecord,
-                                featureEditor.masterRecordArr[0].infoTemplate
+                                dgridMasterRecordArr[0].infoTemplate
                         );
                     }
-                    else if(featureEditor.masterRecordArr.length > 1){
+                    else if(dgridMasterRecordArr.length > 1){
                         var graphic = new esri.Graphic(
-                            featureEditor.masterRecordArr[featureEditor.currentRecord.OBJECTID].geometry,
-                            featureEditor.masterRecordArr[featureEditor.currentRecord.OBJECTID].symbol,
+                            dgridMasterRecordArr[featureEditor.currentRecord.OBJECTID].geometry,
+                            dgridMasterRecordArr[featureEditor.currentRecord.OBJECTID].symbol,
                             featureEditor.currentRecord,
-                            featureEditor.masterRecordArr[featureEditor.currentRecord.OBJECTID].infoTemplate
+                            dgridMasterRecordArr[featureEditor.currentRecord.OBJECTID].infoTemplate
 
                         );
 
@@ -836,7 +840,7 @@
             try{
 
 
-                if(featureEditor.masterRecordArr.length >= 1){
+                if(dgridMasterRecordArr.length >= 1){
                     graphic = new esri.Graphic(
                             null,
                             null,
@@ -961,7 +965,7 @@
             }
 
             featureEditor.ui.handleAddRemoveEditGrid(true);
-            featureEditor.utils.createAddGrid(featureEditor.columnNamesArr);
+            featureEditor.utils.createAddGrid(featureServiceColumnNamesArr);
 
             var entryObject = {};
 
@@ -1185,7 +1189,7 @@
                     }
                 }
 
-                featureEditor.masterRecordArr[i] = {
+                dgridMasterRecordArr[i] = {
                     geometry:entry.geometry,
                     infoTemplate:entry.infoTemplate,
                     symbol:entry.symbol

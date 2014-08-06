@@ -916,12 +916,13 @@
          */
         featureEditor.utils.createGridLegend = function(/* Grid */ grid){
             var htmlString = "";
-            dojo.forEach(grid.columns, function(entry, i){
-                if(typeof(entry.label) !== "undefined" ){
-                    htmlString +=  "<input type='checkbox' onclick='featureEditor.utils.addRemoveColumns(" + i +")' id='checkbox" +
-                            i + "' checked='yes' value='"+ i +"'>" + entry.label  + "<br/>";
-                };
-            });
+            for (var entry in grid.columns){
+                var item = grid.columns[entry];
+                if(typeof(item.label) !== "undefined" ){
+                    htmlString +=  "<input type='checkbox' onclick='featureEditor.utils.addRemoveColumns(" + item.id +")' id='checkbox" +
+                            item.id + "' checked='yes' value='"+ item.id +"'>" + item.label  + "<br/>";
+                }
+            }
 
             dojo.byId("grid-legend").innerHTML = htmlString;
         }

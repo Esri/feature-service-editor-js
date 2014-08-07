@@ -27,7 +27,46 @@ Query String lets you set the SQL string for returning data. When left blank it 
 
 ## To hook your map to grid events
 
-1. Add your map code into the appropriate listener in the <code>controller.utils._setListeners </code> function.
+In order to hook a map up to the datagrid events, tie your map code into the appropriate listener in the <code>featureEditor.utils._setListeners </code> function. As shown in the code snippet below, clicking on a row returns an Object containing all the data:
+
+```
+	featureEditor.dgridRowClickListener = featureEditor.grid.on(".dgrid-row:click",function(event){
+    	var localFeature = featureEditor.grid.row(event);
+        console.log(localFeature.data);        
+    });
+
+```
+
+And, here is an example of the data contained in the localFeature Object. It has everything you need to extract the information and to either build a map Graphic on-the-fly, or to use a unique attribute (e.g. BSID in this example) to parse through a map's feature layer and activate the popup.
+
+This is an example of `localFeature.data`:
+
+```
+data: Object
+	BSID: "17178"
+	DIR: "S"
+	DISTANCE_F: "1125"
+	LAT: "39.7926441"
+	LNG: "-104.978336"
+	LOCATION: "M"
+	OBJECTID: "16"
+	ROUTES: "12"
+	STOPNAME: "Washington St & 55th Ave"
+	X_COORD: "3146592.54170809"
+	Y_COORD: "1714022.41966042"
+
+```
+
+Here's a view of the Object from the Chrome browser's console showing that you can extract the OBJECTID value using `localFeature.id`:
+
+```
+localFeature: y.postscript._Row
+	data: Object
+	element: div#grid-row-16.dgrid-row.dgrid-row-even.ui-state-default
+	id: "16"
+
+```
+
 
 ## Main Editor Window
 
@@ -67,7 +106,7 @@ Find a bug or want to request a new feature?  Please use the [submit new Issue](
 Anyone and everyone is welcome to contribute. 
 
 ## Licensing
-Copyright 2013 Esri
+Copyright 2014 Esri
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

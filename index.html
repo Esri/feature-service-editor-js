@@ -216,16 +216,6 @@
                     alert("No results found. " + err.details[0]);
                 }).then(dojo.hitch(window,function(){
 
-                    isFeatureLayerEditable = featureEditor.featureLayer.isEditable();
-
-                    if(isFeatureLayerEditable == true) {
-                        featureEditor.ui.handleAddRecord(true)
-                    }
-                    else {
-                        featureEditor.ui.handleAddRecord(false);
-                        dojo.byId("entryEditableField").innerHTML = "NOT EDITABLE";
-                    }
-
                     //Create a simple array of field names that are editable
                     for(var item in featureEditor.featureLayer.fields){
                         try{
@@ -1036,10 +1026,7 @@
             dojo.byId("grid-legend-parent").style.visibility = "visible";
             dojo.byId("grid-legend-parent").style.position = "relative";
 
-            //Call the esri.layers.FeatureLayer.isEditable() method
-            featureEditor.featureLayer.isEditable() == true ?
-                featureEditor.ui.handleAddRecord(true) :
-                featureEditor.ui.handleAddRecord(false);
+            featureEditor.ui.handleAddRecord(true);
 
             // update application state
             featureEditor.pageInfo.currentPage = pageNumber;

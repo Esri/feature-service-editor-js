@@ -702,54 +702,6 @@
         }
 
         /**
-         * DEPRECATED as of v0.4
-         * Updates an existing the record/feature in the remote feature service.
-         * @param data Object
-         * @param token String
-         */
-        featureEditor.applyEdits = function(/* Object */ data, /* String */ token){
-            if(token == null)token = "";
-
-            request.post(featureEditor.restEndpoint + "/updateFeatures",{
-                sync:false,
-                timeout:featureEditor.localEnum().HTTP_REQUEST_TIMEOUT,
-                handlAs:"json",
-                data:{
-                    features:data,
-                    f:"json",
-                    rollbackOnFailure:"false",
-                    token:token
-                },
-                headers:{
-                    "X-Requested-With": null
-                }
-            }).then(function(response){
-                var t = JSON.parse(response);
-                if(t.updateResults[0].success == true){
-                    featureEditor.queryRecordsByPage(featureEditor.pageInfo.currentPage);
-                    featureEditor.grid.save();
-                    console.log("applyEdits successful: " + response);
-                    featureEditor.floadingIcon.hide();
-                }
-                else{
-                    console.log("applyEdits: There was a problem with updating the record");
-                    alert("Unable to update record: Error " + t.updateResults[0].error.code + ", " + t.updateResults[0].error.description);
-                    featureEditor.grid.refresh();
-                    featureEditor.floadingIcon.hide();
-                }
-
-            }, function(error){
-                var message = "";
-                if(error.code)message = error.code;
-                if(error.description)message += error.description;
-                console.log("updateRecord: " + error.message + ", " + message);
-                alert("There was a problem applying edits." + error.message + ", " + message);
-                featureEditor.grid.refresh();
-                featureEditor.floadingIcon.hide();
-            })
-        }
-
-        /**
          * Simply adds a new row to the currently visible grid. Does not automatically push
          * changes to the remote store.
          * Disables the addNewRecord button on the new row has been through a double-click > save

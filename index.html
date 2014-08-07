@@ -144,6 +144,7 @@
 
                 featureEditor.store = null;
                 featureEditor.addStore = null;
+                featureEditor.grid = null;
                 featureEditor.currentRecord = null;
                 featureEditor.currentAddRow = null;
                 featureEditor.featureLayer = null;
@@ -165,8 +166,8 @@
 
             //If the add new feature grid is visible then shut it down
             if(featureEditor.addGrid != null){
-                featureEditor.addGrid.store.setData({});
-                featureEditor.addGrid.refresh();
+//                featureEditor.addGrid.store.setData({});
+//                featureEditor.addGrid.refresh();
                 featureEditor.addGrid = null;
                 featureEditor.ui.handleAddRecord(true);
                 featureEditor.ui.handleAddRemoveEditGrid(false);
@@ -883,11 +884,14 @@
 //                featureEditor.ui.handleAddRemoveEditGrid(false);
 //            })
 
-            featureEditor.addGrid.store.setData({});
-            featureEditor.addGrid.refresh();
+//            featureEditor.addGrid.store.setData({});
+//            featureEditor.addGrid.refresh();
             featureEditor.addGrid = null;
             featureEditor.ui.handleAddRecord(true);
             featureEditor.ui.handleAddRemoveEditGrid(false);
+
+            if(featureEditor.dgridAddRowClickListener != null) featureEditor.dgridAddRowClickListener.remove();
+            if(dgridAddCellClickListener != null) dgridAddCellClickListener.remove();
 
             featureEditor.init(true);
         }
@@ -969,11 +973,12 @@
                      noDataMessage:'Nothing found.'*/
                 }, 'add-grid');
 
+                featureEditor.addGrid.startup();
+
                 featureEditor.utils._setAddGridListeners(false);
 
             }
             catch(err){
-                complete = false;
                 console.log("createAddGrid: " + err.message);
             }
         }
@@ -1070,6 +1075,7 @@
                     cell.style.backgroundColor = "#FFFF00";
                     cell.style.color = "#FF0000";
                     //featureEditor.utils.revertLocalRecord();
+                    console.log("There was a problem. Dgrid dirty values are missing!")
                     return;
             }
 

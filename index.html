@@ -909,6 +909,68 @@
         }
 
         /**
+         * Internal method for setting up listeners.
+         * @private
+         */
+        featureEditor.utils._setListeners = function(){
+
+            if(featureEditor.dgridRowClickListener != null)featureEditor.dgridRowClickListener.remove();
+            if(featureEditor.dgridCellClickListener != null)featureEditor.dgridCellClickListener.remove();
+
+            featureEditor.dgridRowClickListener = featureEditor.grid.on(".dgrid-row:click",function(event){
+                var stuff = featureEditor.grid.row(event);
+                console.log(stuff.data);
+                featureEditor.currentRecord = stuff.data;
+            });
+
+            featureEditor.dgridCellClickListener = featureEditor.grid.on(".dgrid-cell:dblclick",function(event){
+                var stuff = featureEditor.grid.cell(event);
+
+                var undo =  typeof (stuff.column.undo);
+                var save =  typeof (stuff.column.save);
+
+                //Check for double clicks on the Save and Undo buttons
+                if(typeof(stuff.column) !== "undefined" && ( save == "undefined" && undo == "undefined")){
+                    console.log(stuff.element.innerHTML);
+                    featureEditor.utils._renderCellHandler(stuff.row,null,stuff.element);
+                }
+
+            });
+        }
+
+        featureEditor.utils._setAddGridListeners = function(/* boolean */ enableRow){
+
+            dijit.byId("remove-new-record-btn").set("disabled",false);
+            dojo.style("remove-new-record-btn","color","#FF0000");
+
+            featureEditor.dgridAddRowClickListener = featureEditor.addGrid.on(".dgrid-row:click",function(event){
+                var stuff = featureEditor.addGrid.row(event);
+                console.log(stuff.data);
+                featureEditor.currentAddRecord = stuff.data;
+                if(enableRow == true)featureEditor.currentAddRow = this;
+            });
+
+            featureEditor.dgridAddCellClickListener = featureEditor.addGrid.on(".dgrid-cell:dblclick",function(event){
+                var stuff = featureEditor.addGrid.cell(event);
+
+                var undo =  typeof (stuff.column.undo);
+                var save =  typeof (stuff.column.save);
+
+                //Check for double clicks on the Save and Undo buttons
+                if(typeof(stuff.column) !== "undefined" && ( save == "undefined" && undo == "undefined")){
+                    console.log(stuff.element.innerHTML);
+                    featureEditor.utils._renderAddCellHandler(stuff.row,null,stuff.element);
+                }
+
+            });
+        }
+
+        //////////////////////////////////////////////////////
+        //   USER INTERFACE CONTROLS
+        //   Functions for organizing user interface controls
+        //////////////////////////////////////////////////////
+
+        /**
          * For handling edit click events. Be aware of differences between Chrome, Firefox and IE.
          * @param object - usually the row object
          * @param data
@@ -927,12 +989,12 @@
 
 
             if(cell.children.length == 0){
-                    //uneditable feature
-                    cell.style.backgroundColor = "#FFFF00";
-                    cell.style.color = "#FF0000";
-                    //featureEditor.utils.revertLocalRecord();
-                    console.log("There was a problem. Dgrid dirty values are missing!")
-                    return;
+                //uneditable feature
+                cell.style.backgroundColor = "#FFFF00";
+                cell.style.color = "#FF0000";
+                //featureEditor.utils.revertLocalRecord();
+                console.log("There was a problem. Dgrid dirty values are missing!")
+                return;
             }
 
             if(object.element.hasChildNodes() && typeof(cell.parentNode.cells) == "undefined"){
@@ -1063,63 +1125,6 @@
         }
 
         /**
-         * Internal method for setting up listeners.
-         * @private
-         */
-        featureEditor.utils._setListeners = function(){
-
-            if(featureEditor.dgridRowClickListener != null)featureEditor.dgridRowClickListener.remove();
-            if(featureEditor.dgridCellClickListener != null)featureEditor.dgridCellClickListener.remove();
-
-            featureEditor.dgridRowClickListener = featureEditor.grid.on(".dgrid-row:click",function(event){
-                var stuff = featureEditor.grid.row(event);
-                console.log(stuff.data);
-                featureEditor.currentRecord = stuff.data;
-            });
-
-            featureEditor.dgridCellClickListener = featureEditor.grid.on(".dgrid-cell:dblclick",function(event){
-                var stuff = featureEditor.grid.cell(event);
-
-                var undo =  typeof (stuff.column.undo);
-                var save =  typeof (stuff.column.save);
-
-                //Check for double clicks on the Save and Undo buttons
-                if(typeof(stuff.column) !== "undefined" && ( save == "undefined" && undo == "undefined")){
-                    console.log(stuff.element.innerHTML);
-                    featureEditor.utils._renderCellHandler(stuff.row,null,stuff.element);
-                }
-
-            });
-        }
-
-        featureEditor.utils._setAddGridListeners = function(/* boolean */ enableRow){
-
-            dijit.byId("remove-new-record-btn").set("disabled",false);
-            dojo.style("remove-new-record-btn","color","#FF0000");
-
-            featureEditor.dgridAddRowClickListener = featureEditor.addGrid.on(".dgrid-row:click",function(event){
-                var stuff = featureEditor.addGrid.row(event);
-                console.log(stuff.data);
-                featureEditor.currentAddRecord = stuff.data;
-                if(enableRow == true)featureEditor.currentAddRow = this;
-            });
-
-            featureEditor.dgridAddCellClickListener = featureEditor.addGrid.on(".dgrid-cell:dblclick",function(event){
-                var stuff = featureEditor.addGrid.cell(event);
-
-                var undo =  typeof (stuff.column.undo);
-                var save =  typeof (stuff.column.save);
-
-                //Check for double clicks on the Save and Undo buttons
-                if(typeof(stuff.column) !== "undefined" && ( save == "undefined" && undo == "undefined")){
-                    console.log(stuff.element.innerHTML);
-                    featureEditor.utils._renderAddCellHandler(stuff.row,null,stuff.element);
-                }
-
-            });
-        }
-
-        /**
          * Creates a waiting icon
          * @param target Id of the element
          * @returns {Node}
@@ -1131,11 +1136,6 @@
             standbyIcon.startup();
             return standbyIcon;
         }
-
-        //////////////////////////////////////////////////////
-        //   USER INTERFACE CONTROLS
-        //   Functions for organizing user interface controls
-        //////////////////////////////////////////////////////
 
         /**
          * Handles CSS for Add Record and Remove New Record buttons.

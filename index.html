@@ -802,7 +802,7 @@
             for (var entry in grid.columns){
                 var item = grid.columns[entry];
                 if(typeof(item.label) !== "undefined" ){
-                    htmlString +=  "<input type='checkbox' onclick='featureEditor.utils.addRemoveColumns(" + item.id +")' id='checkbox" +
+                    htmlString +=  "<input type='checkbox' onclick='addRemoveColumns(" + item.id +")' id='checkbox" +
                             item.id + "' checked='yes' value='"+ item.id +"'>" + item.label  + "<br/>";
                 }
             }
@@ -834,6 +834,7 @@
                     noDataMessage:'Nothing found.'*/
                 }, 'grid');
 
+                F.utils.dataGrid = featureEditor.grid;
 
                 //featureEditor.utils._setListeners();
 
@@ -923,25 +924,6 @@
             dojo.byId("pageInfo").innerHTML = featureEditor.pageInfo.currentPage + "/" + featureEditor.pageInfo.totalPages;
 
             featureEditor.floadingIcon.hide();
-        }
-
-        /**
-         * Helper function for adding and removing columns for better visibility
-         * in FeatureServices that have many fields.
-         * @param id
-         */
-        featureEditor.utils.addRemoveColumns = function(/* number */ id){
-
-            var column = featureEditor.grid.columns[id];
-
-            if(column.hidden == false){
-                featureEditor.grid.styleColumn(id,"display:none;");
-                featureEditor.grid.columns[id].hidden = true;
-            }
-            else{
-                featureEditor.grid.styleColumn(id,"display:table-cell;");
-                featureEditor.grid.columns[id].hidden = false;
-            }
         }
 
         /**

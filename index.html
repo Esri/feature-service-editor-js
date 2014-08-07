@@ -210,27 +210,9 @@
                     console.log("queryIds: Error: " + err.code + ", " + err.details[0]);
                     alert("No results found. " + err.details[0]);
                 }).then(dojo.hitch(window,function(){
-
-                    //Create a simple array of field names that are editable
-                    for(var item in featureEditor.featureLayer.fields){
-                        try{
-                            var editable = featureEditor.featureLayer.fields[parseFloat(item)].editable;
-                            var name = featureEditor.featureLayer.fields[parseFloat(item)].name;
-
-                            var lcName = name.toLowerCase();
-                            //Get the names of the fields corresponding to x and y.
-                            //This could be problematic if someone uses x or y in the first part of the field name
-                            if(lcName.indexOf("x") != -1 && lcName.substring(0,1) == "x") featureEditor.xField = name;
-                            if(lcName.indexOf("y") != -1 && lcName.substring(0,1) == "y") featureEditor.yField = name;
-
-                            if(editable == true){
-                                featureEditor.featureServiceEditableDetails.push(name);
-                            }
-                        }
-                        catch(err){
-                            console.log("init: " + err.message);
-                        }
-                    }
+                    getFieldNamesArr(featureEditor.featureLayer.fields,featureEditor.xField,featureEditor.yField,function(result){
+                        featureEditor.featureServiceEditableDetails = result;
+                    })
                 }));
 
             }

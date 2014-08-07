@@ -46,3 +46,31 @@ addRemoveColumns = function(/* number */ id){
         F.utils.dataGrid.columns[id].hidden = false;
     }
 }
+
+getFieldNamesArr = function(fields,xfield,yfield,callback){
+
+    var editableDetails = [];
+
+    //Create a simple array of field names that are editable
+    for(var item in fields){
+        try{
+            var editable = fields[parseFloat(item)].editable;
+            var name = fields[parseFloat(item)].name;
+
+            var lcName = name.toLowerCase();
+            //Get the names of the fields corresponding to x and y.
+            //This could be problematic if someone uses x or y in the first part of the field name
+            if(lcName.indexOf("x") != -1 && lcName.substring(0,1) == "x") xField = name;
+            if(lcName.indexOf("y") != -1 && lcName.substring(0,1) == "y") yField = name;
+
+            if(editable == true){
+                editableDetails.push(name);
+            }
+        }
+        catch(err){
+            console.log("init: " + err.message);
+        }
+    }
+
+    callback(editableDetails);
+}

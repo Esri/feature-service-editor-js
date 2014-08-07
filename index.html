@@ -8,208 +8,31 @@
 <title>ArcGIS FeatureService Editor</title>
 
 <link rel="stylesheet" href="http://dojofoundation.org/packages/dgrid/js/dgrid/css/dgrid.css">
-<link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/dojo/dijit/themes/claro/claro.css">
-<link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/dojo/dojox/grid/resources/Grid.css">
-<link rel="stylesheet" href="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/js/dojo/dojox/grid/resources/claroGrid.css">
-<style>
-    html, body {
-        height: 100%;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-    }
-
-    body {
-        font-family: sans-serif;
-        font-size: 0.80em;
-        background-color: #808080;
-        font-style: normal;
-        font-weight: normal;
-    }
-
-    #grid {
-        height: 375px;
-        /*width: 750px;*/
-        margin: 15px;
-        background-color: #000000;
-        visibility: hidden;
-    }
-
-    /*
-        #grid .dgrid-row-odd {
-            background: #F2F5F9;
-        }
-    */
-    #grid .dgrid-focus{
-        background: #00BFFF;
-    }
-
-    .grid1 .dgrid-cell {
-        width: 80px;
-        color: #ffffff;
-    }
-
-    .grid1 th.dgrid-cell{
-        color: white;
-        background-color: #2f4f4f;
-    }
-
-    #add-grid {
-        visibility: hidden;
-        display: none;
-        height: 70px;
-        /*width: 750px;*/
-        margin: 15px;
-        background-color: #000000;
-    }
-
-    .grid2 .dgrid-cell {
-        width: 80px;
-        color: #ffffff;
-    }
-
-    .grid2 th.dgrid-cell{
-        color: yellow;
-        background-color: #2f4f4f;
-    }
-
-    .field-id {
-        width: 200px;
-        font-size: .80em;
-        font-weight: normal;
-    }
-
-    #btnSpan {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-
-    #load-btn {
-        background-color: #FF0000;
-        color: #ffffff;
-        width: 80px;
-    }
-
-    #add-new-record-btn {
-        color: #C0C0C0;
-    }
-
-    #remove-new-record-btn {
-        color: #C0C0C0;
-    }
-
-    .loadBtnDiv {
-        padding: 4px;
-    }
-
-    .entryDivNameCol {
-        width: 125px;
-        float: left;
-        padding: 4px;
-        vertical-align: middle;
-    }
-
-    .entryDivFieldCol {
-        float: left;
-        padding: 4px;
-    }
-
-    .entryEditableField{
-        float: left;
-        padding: 4px;
-        color: #FF0000;
-        font-weight: bold;
-    }
-
-    .claro .ui-state-active:hover {
-        background-color: #9bc6f2;
-    }
-    .claro .ui-state-default:hover {
-        background-color: #808080;
-    }
-
-    .claro .ui-state-active {
-        background-color: #ffff00;
-    }
-
-    #grid-legend-parent {
-        position: relative;
-        background-color: black;
-        color: #ffffff;
-        visibility: hidden;
-        padding-left: 15px;
-        padding-top: 15px;
-        top: 15px;
-        left: 15px;
-        border: 2px solid #e1e1e1;
-        max-width: 25%;
-        overflow: auto;
-    }
-
-    #entry-div {
-        position: relative;
-        padding: 15px;
-        border: 2px solid #e1e1e1;
-        top: 15px;
-        left: 15px;
-        width: 95%;
-        background-color: black;
-        color: white;
-    }
-
-    #paginator-div {
-        position: relative;
-        padding: 15px;
-        top: 15px;
-    }
-
-    .saveIcon16 {
-        background-image: url("images/16-Save.png");
-        background-repeat: no-repeat;
-        text-align: center;
-        width: 16px;
-        height: 16px;
-    }
-
-    .undoIcon16 {
-             background-image: url("images/16-Bended-Arrow-Left.png");
-             background-repeat: no-repeat;
-             text-align: center;
-             width: 16px;
-             height: 16px;
-    }
-
-    .deleteIcon16 {
-        background-image: url("images/16-Cross.png");
-        background-repeat: no-repeat;
-        text-align: center;
-        width: 16px;
-        height: 16px;
-    }
-
-
-</style>
+<link rel="stylesheet" href="http://js.arcgis.com/3.10/js/dojo/dijit/themes/claro/claro.css">
+<link rel="stylesheet" href="http://js.arcgis.com/3.10/js/dojo/dojox/grid/resources/Grid.css">
+<link rel="stylesheet" href="http://js.arcgis.com/3.10/js/dojo/dojox/grid/resources/claroGrid.css">
+<link rel="stylesheet" href="css/editableDgrid.css">
 
 <script>var dojoConfig = { parseOnLoad:true, isDebug:true };</script>
-<script src="http://serverapi.arcgisonline.com/jsapi/arcgis/3.5/">
-</script>
-<script>
+<script src="http://js.arcgis.com/3.10/"></script>
 
+<script>
+    "use strict";
     /**
      * Library for rapid, table-based editing of a point-based ArcGIS FeatureServices.
      * With this library you can search, modify, add or delete points.
      * This functionality can be wired into a map.
      *
      * @author Andy Gup
-     * @version 0.5
+     * @version 0.6
      * @type {Object} featureEditor Class.
      */
+
     var featureEditor = featureEditor || {};
     featureEditor.utils = {};
     featureEditor.ui = {};
     featureEditor.grid = null;
     featureEditor.addGrid = null;
-    featureEditor.columnNamesArr = [];
     featureEditor.pageInfo = null;
     featureEditor.store = null;
     featureEditor.addStore = null;
@@ -217,23 +40,26 @@
     featureEditor.currentAddRecord = null;
     featureEditor.currentAddRow = null;
     featureEditor.featureLayer = null;
-    featureEditor.masterRecordArr = [];
     featureEditor.restEndpoint = null;
-    featureEditor.dgridRowClickListener = null;
-    featureEditor.dgridCellClickListener = null;
-    featureEditor.dgridAddCellClickListener = null;
     featureEditor.outFields = null;
-    featureEditor.loadingIcon = null;
     featureEditor.spatialReference = null;
     featureEditor.xField = null; //internal - field string name containing x geometry value
     featureEditor.yField = null; //internal - field string name containing y geometry value;
+
+    featureEditor.dgridMasterRecordArr = [];
+    featureEditor.dgridRowClickListener = null;
+    featureEditor.dgridCellClickListener = null;
+    featureEditor.dgridAddCellClickListener = null;
+
+    featureEditor.featureServiceColumnNamesArr = [];
+    featureEditor.floadingIcon = null;
 
     /**
      * An array of the editable fields within the featureLayer.
      * By default, fields with the property editable = false are automatically excluded.
      * @type {Array}
      */
-    featureEditor.featureEditDetails = [];
+    featureEditor.featureServiceEditableDetails = [];
 
     /**
      * Local ENUMs (Constants)
@@ -273,6 +99,7 @@
         "dojo/query",
         "dojo/Deferred",
         "dojox/widget/Standby",
+        "libs/utils.js",
         "dojo/domReady!"],
         function(declare,FeatureLayer,Query,Button,ComboBox,number,OnDemandGrid,ColumnHider,
                  Selection,CellSelection,mouseUtil,Keyboard,editor,Memory,on,when,request,query,Deferred,Standby){
@@ -310,29 +137,28 @@
 
             dojo.byId("grid").style.visibility = "visible";
 
-            featureEditor.loadingIcon = featureEditor.utils._createStandbyIcon("grid");
-            featureEditor.loadingIcon.show();
+            featureEditor.floadingIcon = featureEditor.utils._createStandbyIcon("grid");
+            featureEditor.floadingIcon.show();
 
             //Attempt a soft reset of grid data without having to recreate from scratch.
             if(featureEditor.grid != null){
 
-                featureEditor.grid.store.setData({});
-                featureEditor.grid.refresh();
-                featureEditor.pageInfo = null;
-                featureEditor.grid = null;
-                featureEditor.columnNamesArr = [];
-                featureEditor.pageInfo = null;
                 featureEditor.store = null;
                 featureEditor.addStore = null;
+                featureEditor.grid = null;
                 featureEditor.currentRecord = null;
                 featureEditor.currentAddRow = null;
                 featureEditor.featureLayer = null;
-                featureEditor.masterRecordArr = [];
                 featureEditor.restEndpoint = null;
-                featureEditor.dgridAddCellClickListener = null;
                 featureEditor.spatialReference = null;
                 featureEditor.xField = null;
                 featureEditor.yField = null;
+
+                featureEditor.featureServiceColumnNamesArr = [];
+                featureEditor.dgridMasterRecordArr = [];
+                featureEditor.dgridAddCellClickListener = null;
+                featureEditor.dgridRowClickListener = null;
+                featureEditor.dgridCellClickListener = null;
 
             }
 
@@ -341,8 +167,8 @@
 
             //If the add new feature grid is visible then shut it down
             if(featureEditor.addGrid != null){
-                featureEditor.addGrid.store.setData({});
-                featureEditor.addGrid.refresh();
+//                featureEditor.addGrid.store.setData({});
+//                featureEditor.addGrid.refresh();
                 featureEditor.addGrid = null;
                 featureEditor.ui.handleAddRecord(true);
                 featureEditor.ui.handleAddRemoveEditGrid(false);
@@ -350,7 +176,7 @@
 
             var queryString = document.getElementById("query-string").value;
             var url = document.getElementById("fsEndpoint").value;
-            var isURLvalid = featureEditor.utils.validateURL(url);
+            var isURLvalid = validateURL(url);
 
             //Currently the outfield property is locked to return all fields.
             //So the capability to modify it has been commented out.
@@ -377,34 +203,16 @@
                     }
                     else{
                         alert("No results found.");
-                        featureEditor.loadingIcon.hide();
+                        featureEditor.floadingIcon.hide();
                     }
                 },function(err){
-                    featureEditor.loadingIcon.hide();
+                    featureEditor.floadingIcon.hide();
                     console.log("queryIds: Error: " + err.code + ", " + err.details[0]);
                     alert("No results found. " + err.details[0]);
                 }).then(dojo.hitch(window,function(){
-
-                    //Create a simple array of field names that are editable
-                    for(var item in featureEditor.featureLayer.fields){
-                        try{
-                            var editable = featureEditor.featureLayer.fields[parseFloat(item)].editable;
-                            var name = featureEditor.featureLayer.fields[parseFloat(item)].name;
-
-                            var lcName = name.toLowerCase();
-                            //Get the names of the fields corresponding to x and y.
-                            //This could be problematic if someone uses x or y in the first part of the field name
-                            if(lcName.indexOf("x") != -1 && lcName.substring(0,1) == "x") featureEditor.xField = name;
-                            if(lcName.indexOf("y") != -1 && lcName.substring(0,1) == "y") featureEditor.yField = name;
-
-                            if(editable == true){
-                                featureEditor.featureEditDetails.push(name);
-                            }
-                        }
-                        catch(err){
-                            console.log("init: " + err.message);
-                        }
-                    }
+                    getFieldNamesArr(featureEditor.featureLayer.fields,featureEditor.xField,featureEditor.yField,function(result){
+                        featureEditor.featureServiceEditableDetails = result;
+                    })
                 }));
 
             }
@@ -428,7 +236,7 @@
                     featureEditor.grid.showMessage("No matching records");
                 }
 
-                featureEditor.loadingIcon.hide();
+                featureEditor.floadingIcon.hide();
                 alert("No record found.");
             }
         }
@@ -463,7 +271,7 @@
                 return;
             }
 
-            featureEditor.loadingIcon.show();
+            featureEditor.floadingIcon.show();
 
             var begin = featureEditor.pageInfo.recordsPerPage * (pageNumber - 1);
             var end = begin + featureEditor.pageInfo.recordsPerPage;
@@ -478,7 +286,7 @@
 
                 //Verify that feature service only contains point data
                 if(featureSet != null && featureSet.features.length > 0 && featureSet.geometryType != "esriGeometryPoint"){
-                    featureEditor.loadingIcon.hide();
+                    featureEditor.floadingIcon.hide();
                     alert("Can only load point based feature services, sorry.");
                     return;
                 }
@@ -488,7 +296,7 @@
                 var i = 0;
                 var arr = [];
                 var columnArr = [];
-                var length = featureEditor.featureEditDetails.length;
+                var length = featureEditor.featureServiceEditableDetails.length;
 
                 for (var key in featureSet.features[0].attributes){
                     console.log(key);
@@ -497,7 +305,7 @@
                     //See if there are any editable features.
                     var editTest = -1;
                     if(length > 0){
-                        editTest = featureEditor.featureEditDetails.indexOf(key);
+                        editTest = featureEditor.featureServiceEditableDetails.indexOf(key);
                     }
 
                     //Item is editable if != -1
@@ -538,9 +346,6 @@
                                 //alert('hi');
                                 featureEditor.addNewRecord();
                             }
-                            var b = event.currentTarget.children[0].id;
-                            var c = dijit.byId(b);
-                            c.set('disabled',true);
                         })
                     },cell.appendChild(document.createElement("div")));
                 }};
@@ -561,9 +366,6 @@
                             else{
                                 featureEditor.utils.revertLocalAddRecord();
                             }
-                            var b = event.currentTarget.children[0].id;
-                            var c = dijit.byId(b);
-                            c.set('disabled',true);
                         })
                     },cell.appendChild(document.createElement("div")));
                 }};
@@ -588,17 +390,11 @@
                                     featureEditor.utils.revertLocalRecord();
                                 }
                             }
-                            else{
-                                //featureEditor.utils.revertLocalAddRecord();
-                            }
-                            var b = event.currentTarget.children[0].id;
-                            var c = dijit.byId(b);
-                            c.set('disabled',true);
                         })
                     },cell.appendChild(document.createElement("div")));
                 }};
 
-                featureEditor.columnNamesArr = columnArr;
+                featureEditor.featureServiceColumnNamesArr = columnArr;
 
                 if(featureEditor.grid == null){
                     featureEditor.utils.createGrid(columnArr);
@@ -667,17 +463,17 @@
                             featureEditor.currentAddRecord
                     );
 
-                    featureEditor.loadingIcon.show();
+                    featureEditor.floadingIcon.show();
                     featureEditor.insertNewFeature([graphic],null,true);
 
                 }
                 catch(err){
-                    featureEditor.loadingIcon.hide();
+                    featureEditor.floadingIcon.hide();
                     alert("Unable to complete add new record. " + err.message);
                 }
             }
             else{
-                featureEditor.loadingIcon.hide();
+                featureEditor.floadingIcon.hide();
                 alert("Unable to complete add new record. No valid values.");
             }
         }
@@ -705,7 +501,7 @@
                                 featureEditor.currentRecord[item] = dirty[property][item];
                              }
                              else{
-                                 console.log("updateRecord - properties may be missing from currentRecord.");
+                                 console.log("updateRecord - properties may be missing from currentRecord. Check dirty values.");
                              }
                          }
 
@@ -713,25 +509,22 @@
                      }
                 }
 
-                //featureEditor.currentRecord[nameArr[0]] = dirty[id][nameArr[0]];
-                //console.log(nameArr + ", " + dirty[id][nameArr[0]]);
-
                 try{
 
-                    if(featureEditor.masterRecordArr.length == 1){
+                    if(featureEditor.dgridMasterRecordArr.length == 1){
                         graphic = new esri.Graphic(
-                                featureEditor.masterRecordArr[0].geometry,
-                                featureEditor.masterRecordArr[0].symbol,
+                                featureEditor.dgridMasterRecordArr[0].geometry,
+                                featureEditor.dgridMasterRecordArr[0].symbol,
                                 featureEditor.currentRecord,
-                                featureEditor.masterRecordArr[0].infoTemplate
+                                featureEditor.dgridMasterRecordArr[0].infoTemplate
                         );
                     }
-                    else if(featureEditor.masterRecordArr.length > 1){
+                    else if(featureEditor.dgridMasterRecordArr.length > 1){
                         var graphic = new esri.Graphic(
-                            featureEditor.masterRecordArr[featureEditor.currentRecord.OBJECTID].geometry,
-                            featureEditor.masterRecordArr[featureEditor.currentRecord.OBJECTID].symbol,
+                            featureEditor.dgridMasterRecordArr[featureEditor.currentRecord.OBJECTID].geometry,
+                            featureEditor.dgridMasterRecordArr[featureEditor.currentRecord.OBJECTID].symbol,
                             featureEditor.currentRecord,
-                            featureEditor.masterRecordArr[featureEditor.currentRecord.OBJECTID].infoTemplate
+                            featureEditor.dgridMasterRecordArr[featureEditor.currentRecord.OBJECTID].infoTemplate
 
                         );
 
@@ -741,7 +534,7 @@
                         return false;
                     }
 
-                    featureEditor.loadingIcon.show();
+                    featureEditor.floadingIcon.show();
 
                     //var data =  JSON.stringify([graphic]);
                     //featureEditor.applyEdits(data);
@@ -749,7 +542,7 @@
                         console.log("updateRecord: " + updateResult[0].objectId + ", Success: " + updateResult[0].success);
 
                         featureEditor.grid.refresh();
-                        featureEditor.loadingIcon.hide();
+                        featureEditor.floadingIcon.hide();
                     },
                     function(error){
                         var message = "";
@@ -758,7 +551,7 @@
                         console.log("updateRecord: " + error.message + ", " + message);
 
                         featureEditor.grid.refresh();
-                        featureEditor.loadingIcon.hide();
+                        featureEditor.floadingIcon.hide();
 
                         alert("Unable to update. " + error.message + ", " + message);
 
@@ -797,14 +590,14 @@
                     featureEditor.queryRecordsByPage(featureEditor.pageInfo.currentPage);
                     //featureEditor.grid.save();
                     console.log("insertNewFeature successful: " + response);
-                    featureEditor.loadingIcon.hide();
+                    featureEditor.floadingIcon.hide();
 
                     if(confirm)alert("Feature #" + response[0].objectId + " was successfully added." );
                 }
                 else{
                     console.log("insertNewFeature: There was a problem with writing the record to database");
                     featureEditor.grid.refresh();
-                    featureEditor.loadingIcon.hide();
+                    featureEditor.floadingIcon.hide();
                     alert("There was a problem and feature was not added.");
                 }
             },function(error){
@@ -816,7 +609,7 @@
                 console.log("insertNewFeature: " + error.message + ", " + message);
 
                 featureEditor.grid.refresh();
-                featureEditor.loadingIcon.hide();
+                featureEditor.floadingIcon.hide();
 
                 alert("There was a problem adding a new feature: " + error.message + ", " + message);
             });
@@ -836,7 +629,7 @@
             try{
 
 
-                if(featureEditor.masterRecordArr.length >= 1){
+                if(featureEditor.dgridMasterRecordArr.length >= 1){
                     graphic = new esri.Graphic(
                             null,
                             null,
@@ -861,7 +654,7 @@
                     //featureEditor.queryRecordsByPage(1);
                     //featureEditor.grid.save();
                     console.log("deleteFeatures successful on ObjectID: " + deletes[0].objectId + ", success: " + deletes[0].success);
-                    featureEditor.loadingIcon.hide();
+                    featureEditor.floadingIcon.hide();
 
                     featureEditor.init(false);
 
@@ -873,7 +666,7 @@
 
                 }
 
-                featureEditor.loadingIcon.hide();
+                featureEditor.floadingIcon.hide();
 
             },function(error){
                 //NOTE: There is a bug in which the correct error message is not displayed
@@ -884,67 +677,10 @@
                 console.log("deleteFeature: " + error.message + ", " + message);
 
                 featureEditor.grid.refresh();
-                featureEditor.loadingIcon.hide();
+                featureEditor.floadingIcon.hide();
 
                 alert("There was a problem deleting: " + error.message + ", " + message);
             });
-        }
-
-        /**
-         * DEPRECATED as of v0.4
-         * Updates an existing the record/feature in the remote feature service.
-         * @param data Object
-         * @param token String
-         */
-        featureEditor.applyEdits = function(/* Object */ data, /* String */ token){
-            if(token == null)token = "";
-
-            request.post(featureEditor.restEndpoint + "/updateFeatures",{
-                sync:false,
-                timeout:featureEditor.localEnum().HTTP_REQUEST_TIMEOUT,
-                handlAs:"json",
-                data:{
-                    features:data,
-                    f:"json",
-                    rollbackOnFailure:"false",
-                    token:token
-                },
-                headers:{
-                    "X-Requested-With": null
-                }
-            }).then(function(response){
-                var t = JSON.parse(response);
-                if(t.updateResults[0].success == true){
-                    featureEditor.queryRecordsByPage(featureEditor.pageInfo.currentPage);
-                    featureEditor.grid.save();
-                    console.log("applyEdits successful: " + response);
-                    featureEditor.loadingIcon.hide();
-                }
-                else{
-                    console.log("applyEdits: There was a problem with updating the record");
-                    alert("Unable to update record: Error " + t.updateResults[0].error.code + ", " + t.updateResults[0].error.description);
-                    featureEditor.grid.refresh();
-                    featureEditor.loadingIcon.hide();
-                }
-
-            }, function(error){
-                var message = "";
-                if(error.code)message = error.code;
-                if(error.description)message += error.description;
-                console.log("updateRecord: " + error.message + ", " + message);
-                alert("There was a problem applying edits." + error.message + ", " + message);
-                featureEditor.grid.refresh();
-                featureEditor.loadingIcon.hide();
-            })
-        }
-
-        /**
-         * Validates a url
-         * @param url
-         * @returns boolean
-         */
-        featureEditor.utils.validateURL = function(/* String */ url){
-            return  /^(ftp|http|https):\/\/[^ "]+$/.test(url);
         }
 
         /**
@@ -961,7 +697,7 @@
             }
 
             featureEditor.ui.handleAddRemoveEditGrid(true);
-            featureEditor.utils.createAddGrid(featureEditor.columnNamesArr);
+            featureEditor.utils.createAddGrid(featureEditor.featureServiceColumnNamesArr);
 
             var entryObject = {};
 
@@ -980,32 +716,11 @@
 
                 featureEditor.addStore.put(entryObject);
                 featureEditor.addGrid.refresh();
-                //featureEditor.addGrid.row("TBD").element.scrollIntoView();
-
-
-//                featureEditor.grid.store.put(entryObject);
-//                featureEditor.grid.refresh();
-//                //featureEditor.grid.row("TBD").element.scrollIntoView();
-//
-//                var row = featureEditor.grid.row("TBD");
-//                dojo.style(row.element,"backgroundColor","#FFFF00");
-//                dojo.style(row.element.id,"color","#FF0000 !important");
-//                row.element.style.color = "#FF000";
 
                 var row2 = featureEditor.addGrid.row("TBD");
                 dojo.style(row2.element,"backgroundColor","#FFFF00");
                 //dojo.style(row2.element.id,"color","#FF0000 !important");
                 row2.element.style.color = "#FF000";
-
-//                var rowHeight = featureEditor.addGrid.contentNode.children[1].clientHeight;
-//                var headerHeight = featureEditor.addGrid.headerNode.clientHeight;
-//                dojo.style("add-grid","height",rowHeight + headerHeight + " !important");
-
-//                if(typeof(row.element.children) != "undefined"){
-//                    dojo.forEach(row.element.children[0].children,function(entry, i){
-//                        entry.style.color = "#FF0000";
-//                    })
-//                }
 
                 if(typeof(row2.element.children) != "undefined"){
                     dojo.forEach(row2.element.children[0].children,function(entry, i){
@@ -1031,9 +746,7 @@
          * Does not push the change to the server.
          */
         featureEditor.utils.revertLocalRecord = function(){
-            var dirty = featureEditor.grid.dirty;
-            var id = Object.keys(dirty)[0];
-            delete dirty[id];
+            deleteDirtyBits(featureEditor.grid);
             featureEditor.grid.refresh();
         }
 
@@ -1042,9 +755,7 @@
          * Does not push the change to the server.
          */
         featureEditor.utils.revertLocalAddRecord = function(){
-            var dirty = featureEditor.addGrid.dirty;
-            var id = Object.keys(dirty)[0];
-            delete dirty[id];
+            deleteDirtyBits(featureEditor.addGrid);
             featureEditor.addGrid.refresh();
         }
 
@@ -1053,29 +764,12 @@
          */
         featureEditor.utils.removeNewLocalRecord = function(){
 
-//            when(featureEditor.addGrid.store.query(function(){
-//                return true;
-//            }),function(results){
-//                dojo.forEach(results, function (entry, i){
-//                    //console.log(entry);
-//                    for (var value in entry){
-//                        if(entry[value] === "TBD"){
-//                            featureEditor.addGrid.store.remove(entry[value]);
-//                            featureEditor.addGrid.refresh();
-//                            featureEditor.ui.handleAddRecord(true);
-//                            return;
-//                        }
-//                    }
-//                });
-//
-//                featureEditor.ui.handleAddRemoveEditGrid(false);
-//            })
-
-            featureEditor.addGrid.store.setData({});
-            featureEditor.addGrid.refresh();
             featureEditor.addGrid = null;
             featureEditor.ui.handleAddRecord(true);
             featureEditor.ui.handleAddRemoveEditGrid(false);
+
+            if(featureEditor.dgridAddRowClickListener != null) featureEditor.dgridAddRowClickListener.remove();
+            if(featureEditor.dgridAddCellClickListener != null) featureEditor.dgridAddCellClickListener.remove();
 
             featureEditor.init(true);
         }
@@ -1087,12 +781,13 @@
          */
         featureEditor.utils.createGridLegend = function(/* Grid */ grid){
             var htmlString = "";
-            dojo.forEach(grid.columns, function(entry, i){
-                if(typeof(entry.label) !== "undefined" ){
-                    htmlString +=  "<input type='checkbox' onclick='featureEditor.utils.addRemoveColumns(" + i +")' id='checkbox" +
-                            i + "' checked='yes' value='"+ i +"'>" + entry.label  + "<br/>";
-                };
-            });
+            for (var entry in grid.columns){
+                var item = grid.columns[entry];
+                if(typeof(item.label) !== "undefined" ){
+                    htmlString +=  "<input type='checkbox' onclick='addRemoveColumns(" + item.id +")' id='checkbox" +
+                            item.id + "' checked='yes' value='"+ item.id +"'>" + item.label  + "<br/>";
+                }
+            }
 
             dojo.byId("grid-legend").innerHTML = htmlString;
         }
@@ -1121,6 +816,7 @@
                     noDataMessage:'Nothing found.'*/
                 }, 'grid');
 
+                F.utils.dataGrid = featureEditor.grid;
 
                 //featureEditor.utils._setListeners();
 
@@ -1156,12 +852,12 @@
                      noDataMessage:'Nothing found.'*/
                 }, 'add-grid');
 
+                featureEditor.addGrid.startup();
 
                 featureEditor.utils._setAddGridListeners(false);
 
             }
             catch(err){
-                complete = false;
                 console.log("createAddGrid: " + err.message);
             }
         }
@@ -1185,7 +881,9 @@
                     }
                 }
 
-                featureEditor.masterRecordArr[i] = {
+                // Create the featureEditor.dgridMasterRecordArr. It's used later
+                // during editing
+                featureEditor.dgridMasterRecordArr[entry.attributes.OBJECTID] = {
                     geometry:entry.geometry,
                     infoTemplate:entry.infoTemplate,
                     symbol:entry.symbol
@@ -1194,10 +892,6 @@
                 data.push(entryObject);
             });
 
-//            if(featureEditor.grid.store != null) {
-//                //featureEditor.grid.store.setData({});
-//                //featureEditor.grid.refresh();
-//            }
             featureEditor.grid.store.setData(data);
             featureEditor.grid.refresh();
 
@@ -1205,36 +899,76 @@
             dojo.byId("grid-legend-parent").style.visibility = "visible";
             dojo.byId("grid-legend-parent").style.position = "relative";
 
-            //Call the esri.layers.FeatureLayer.isEditable() method
-            featureEditor.featureLayer.isEditable() == true ?
-                featureEditor.ui.handleAddRecord(true) :
-                featureEditor.ui.handleAddRecord(false);
+            featureEditor.ui.handleAddRecord(true);
 
             // update application state
             featureEditor.pageInfo.currentPage = pageNumber;
             dojo.byId("pageInfo").innerHTML = featureEditor.pageInfo.currentPage + "/" + featureEditor.pageInfo.totalPages;
 
-            featureEditor.loadingIcon.hide();
+            featureEditor.floadingIcon.hide();
         }
 
         /**
-         * Helper function for adding and removing columns for better visibility
-         * in FeatureServices that have many fields.
-         * @param id
+         * Internal method for setting up listeners.
+         * @private
          */
-        featureEditor.utils.addRemoveColumns = function(/* number */ id){
+        featureEditor.utils._setListeners = function(){
 
-            var column = featureEditor.grid.columns[id];
+            if(featureEditor.dgridRowClickListener != null)featureEditor.dgridRowClickListener.remove();
+            if(featureEditor.dgridCellClickListener != null)featureEditor.dgridCellClickListener.remove();
 
-            if(column.hidden == false){
-                featureEditor.grid.styleColumn(id,"display:none;");
-                featureEditor.grid.columns[id].hidden = true;
-            }
-            else{
-                featureEditor.grid.styleColumn(id,"display:table-cell;");
-                featureEditor.grid.columns[id].hidden = false;
-            }
+            featureEditor.dgridRowClickListener = featureEditor.grid.on(".dgrid-row:click",function(event){
+                var localFeature = featureEditor.grid.row(event);
+                console.log(localFeature.data);
+                featureEditor.currentRecord = localFeature.data;
+            });
+
+            featureEditor.dgridCellClickListener = featureEditor.grid.on(".dgrid-cell:dblclick",function(event){
+                var stuff = featureEditor.grid.cell(event);
+
+                var undo =  typeof (stuff.column.undo);
+                var save =  typeof (stuff.column.save);
+
+                //Check for double clicks on the Save and Undo buttons
+                if(typeof(stuff.column) !== "undefined" && ( save == "undefined" && undo == "undefined")){
+                    console.log(stuff.element.innerHTML);
+                    featureEditor.utils._renderCellHandler(stuff.row,null,stuff.element);
+                }
+
+            });
         }
+
+        featureEditor.utils._setAddGridListeners = function(/* boolean */ enableRow){
+
+            dijit.byId("remove-new-record-btn").set("disabled",false);
+            dojo.style("remove-new-record-btn","color","#FF0000");
+
+            featureEditor.dgridAddRowClickListener = featureEditor.addGrid.on(".dgrid-row:click",function(event){
+                var stuff = featureEditor.addGrid.row(event);
+                console.log(stuff.data);
+                featureEditor.currentAddRecord = stuff.data;
+                if(enableRow == true)featureEditor.currentAddRow = this;
+            });
+
+            featureEditor.dgridAddCellClickListener = featureEditor.addGrid.on(".dgrid-cell:dblclick",function(event){
+                var stuff = featureEditor.addGrid.cell(event);
+
+                var undo =  typeof (stuff.column.undo);
+                var save =  typeof (stuff.column.save);
+
+                //Check for double clicks on the Save and Undo buttons
+                if(typeof(stuff.column) !== "undefined" && ( save == "undefined" && undo == "undefined")){
+                    console.log(stuff.element.innerHTML);
+                    featureEditor.utils._renderAddCellHandler(stuff.row,null,stuff.element);
+                }
+
+            });
+        }
+
+        //////////////////////////////////////////////////////
+        //   USER INTERFACE CONTROLS
+        //   Functions for organizing user interface controls
+        //////////////////////////////////////////////////////
 
         /**
          * For handling edit click events. Be aware of differences between Chrome, Firefox and IE.
@@ -1255,11 +989,12 @@
 
 
             if(cell.children.length == 0){
-                    //uneditable feature
-                    cell.style.backgroundColor = "#FFFF00";
-                    cell.style.color = "#FF0000";
-                    //featureEditor.utils.revertLocalRecord();
-                    return;
+                //uneditable feature
+                cell.style.backgroundColor = "#FFFF00";
+                cell.style.color = "#FF0000";
+                //featureEditor.utils.revertLocalRecord();
+                console.log("There was a problem. Dgrid dirty values are missing!")
+                return;
             }
 
             if(object.element.hasChildNodes() && typeof(cell.parentNode.cells) == "undefined"){
@@ -1362,9 +1097,6 @@
                 deleteBtn = child0.childNodes[length - 1].children[0].children[0].children[0];
                 dijit.byId(deleteBtn.id).set('disabled',true);
 
-//                deleteBtnCell = child0.childNodes[length - 1].children[0].children[0];
-//                deleteBtnCell.style.backgroundColor = "#ff0000";
-
             }
             else{
                 //IE 9 hack
@@ -1385,73 +1117,11 @@
                     //Leave 'disabled' -- use Remove New Record button
                     deleteBtn = cell.parentNode.cells[length - 1].children[0].children[0].children[0];
                     dijit.byId(deleteBtn.id).set('disabled',true);
-
-//                    deleteBtnCell = cell.parentNode.cells[length - 1].children[0].children[0];
-//                    deleteBtnCell.style.backgroundColor = "#ff0000";
-
                 }
                 catch(err){
                     console.log("_renderAddCellHandler: " + err.message);
                 }
             }
-        }
-
-        /**
-         * Internal method for setting up listeners.
-         * @private
-         */
-        featureEditor.utils._setListeners = function(){
-
-            if(featureEditor.dgridRowClickListener != null)featureEditor.dgridRowClickListener.remove();
-            if(featureEditor.dgridCellClickListener != null)featureEditor.dgridCellClickListener.remove();
-
-            featureEditor.dgridRowClickListener = featureEditor.grid.on(".dgrid-row:click",function(event){
-                var stuff = featureEditor.grid.row(event);
-                console.log(stuff.data);
-                featureEditor.currentRecord = stuff.data;
-            });
-
-            featureEditor.dgridCellClickListener = featureEditor.grid.on(".dgrid-cell:dblclick",function(event){
-                var stuff = featureEditor.grid.cell(event);
-
-                var undo =  typeof (stuff.column.undo);
-                var save =  typeof (stuff.column.save);
-
-                //Check for double clicks on the Save and Undo buttons
-                if(typeof(stuff.column) !== "undefined" && ( save == "undefined" && undo == "undefined")){
-                    console.log(stuff.element.innerHTML);
-                    featureEditor.utils._renderCellHandler(stuff.row,null,stuff.element);
-                }
-
-            });
-
-//            controller.grid.on(mouseUtil.enterRow, function(event){
-//                var row = controller.grid.row(event);
-//                console.log("mouseover " + row);
-//            });
-        }
-
-        featureEditor.utils._setAddGridListeners = function(/* boolean */ enableRow){
-            featureEditor.dgridAddRowClickListener = featureEditor.addGrid.on(".dgrid-row:click",function(event){
-                var stuff = featureEditor.addGrid.row(event);
-                console.log(stuff.data);
-                featureEditor.currentAddRecord = stuff.data;
-                if(enableRow == true)featureEditor.currentAddRow = this;
-            });
-
-            featureEditor.dgridAddCellClickListener = featureEditor.addGrid.on(".dgrid-cell:dblclick",function(event){
-                var stuff = featureEditor.addGrid.cell(event);
-
-                var undo =  typeof (stuff.column.undo);
-                var save =  typeof (stuff.column.save);
-
-                //Check for double clicks on the Save and Undo buttons
-                if(typeof(stuff.column) !== "undefined" && ( save == "undefined" && undo == "undefined")){
-                    console.log(stuff.element.innerHTML);
-                    featureEditor.utils._renderAddCellHandler(stuff.row,null,stuff.element);
-                }
-
-            });
         }
 
         /**
@@ -1468,24 +1138,6 @@
         }
 
         /**
-         * Basic date formatter
-         * @param value
-         * @returns {String}
-         */
-        featureEditor.utils.formatDate = function(value) {
-            var inputDate = new Date(value);
-            return dojo.date.locale.format(inputDate, {
-                selector   :'date',
-                datePattern:'MMMM d, y'
-            });
-        }
-
-        //////////////////////////////////////////////////////
-        //   USER INTERFACE CONTROLS
-        //   Functions for organizing user interface controls
-        //////////////////////////////////////////////////////
-
-        /**
          * Handles CSS for Add Record and Remove New Record buttons.
          * Default is true in which Add Record Button is active and Remove button is disabled.
          * @param value boolean
@@ -1499,9 +1151,8 @@
                 dojo.style("add-new-record-btn","color","#FF0000");
             }
             else{
-                dojo.byId("entryEditableField").innerHTML = "NOT EDITABLE";
-                dijit.byId("remove-new-record-btn").set("disabled",true);
-                dojo.style("remove-new-record-btn","color","#C0C0C0");
+                dijit.byId("remove-new-record-btn").set("disabled",false);
+                dojo.style("remove-new-record-btn","color","#FF0000");
                 dijit.byId("add-new-record-btn").set("disabled",true);
                 dojo.style("add-new-record-btn","color","#C0C0C0");
             }
@@ -1540,6 +1191,7 @@
         <div >
             <div class="entryDivNameCol">Query String</div>
             <div class="entryDivFieldCol"><input id="query-string" type="text" /> </div>
+            <div class="entryDivNameCol">E.g. BSID='1234'</div>
         </div> <!--
         <div class="clear" style="clear: both"></div>
         <div >

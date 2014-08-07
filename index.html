@@ -764,9 +764,7 @@
          * Does not push the change to the server.
          */
         featureEditor.utils.revertLocalRecord = function(){
-            var dirty = featureEditor.grid.dirty;
-            var id = Object.keys(dirty)[0];
-            delete dirty[id];
+            deleteDirtyBits(featureEditor.grid);
             featureEditor.grid.refresh();
         }
 
@@ -775,9 +773,7 @@
          * Does not push the change to the server.
          */
         featureEditor.utils.revertLocalAddRecord = function(){
-            var dirty = featureEditor.addGrid.dirty;
-            var id = Object.keys(dirty)[0];
-            delete dirty[id];
+            deleteDirtyBits(featureEditor.addGrid);
             featureEditor.addGrid.refresh();
         }
 

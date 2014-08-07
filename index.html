@@ -43,8 +43,6 @@
     var dgridCellClickListener = null;
     var dgridAddCellClickListener = null;
 
-    var isFeatureLayerEditable = false;
-
     var featureEditor = featureEditor || {};
     featureEditor.utils = {};
     featureEditor.ui = {};
@@ -144,11 +142,6 @@
             //Attempt a soft reset of grid data without having to recreate from scratch.
             if(featureEditor.grid != null){
 
-                featureEditor.grid.store.setData({});
-                featureEditor.grid.refresh();
-                featureEditor.pageInfo = null;
-                featureEditor.grid = null;
-                featureEditor.pageInfo = null;
                 featureEditor.store = null;
                 featureEditor.addStore = null;
                 featureEditor.currentRecord = null;
@@ -524,7 +517,7 @@
                                 featureEditor.currentRecord[item] = dirty[property][item];
                              }
                              else{
-                                 console.log("updateRecord - properties may be missing from currentRecord.");
+                                 console.log("updateRecord - properties may be missing from currentRecord. Check dirty values.");
                              }
                          }
 

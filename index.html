@@ -918,9 +918,9 @@
             if(featureEditor.dgridCellClickListener != null)featureEditor.dgridCellClickListener.remove();
 
             featureEditor.dgridRowClickListener = featureEditor.grid.on(".dgrid-row:click",function(event){
-                var stuff = featureEditor.grid.row(event);
-                console.log(stuff.data);
-                featureEditor.currentRecord = stuff.data;
+                var localFeature = featureEditor.grid.row(event);
+                console.log(localFeature.data);
+                featureEditor.currentRecord = localFeature.data;
             });
 
             featureEditor.dgridCellClickListener = featureEditor.grid.on(".dgrid-cell:dblclick",function(event){

@@ -1229,19 +1229,6 @@
             return standbyIcon;
         }
 
-        /**
-         * Basic date formatter
-         * @param value
-         * @returns {String}
-         */
-        featureEditor.utils.formatDate = function(value) {
-            var inputDate = new Date(value);
-            return dojo.date.locale.format(inputDate, {
-                selector   :'date',
-                datePattern:'MMMM d, y'
-            });
-        }
-
         //////////////////////////////////////////////////////
         //   USER INTERFACE CONTROLS
         //   Functions for organizing user interface controls

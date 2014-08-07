@@ -176,7 +176,7 @@
 
             var queryString = document.getElementById("query-string").value;
             var url = document.getElementById("fsEndpoint").value;
-            var isURLvalid = featureEditor.utils.validateURL(url);
+            var isURLvalid = validateURL(url);
 
             //Currently the outfield property is locked to return all fields.
             //So the capability to modify it has been commented out.
@@ -747,15 +747,6 @@
                 featureEditor.grid.refresh();
                 featureEditor.floadingIcon.hide();
             })
-        }
-
-        /**
-         * Validates a url
-         * @param url
-         * @returns boolean
-         */
-        featureEditor.utils.validateURL = function(/* String */ url){
-            return  /^(ftp|http|https):\/\/[^ "]+$/.test(url);
         }
 
         /**

@@ -1,5 +1,13 @@
 # feature-service-editor-js - Changelog
 
+## Version 0.6 - Aug. 7, 2014
+- Fixed issue #5: Update to JS API v3.10.
+- Fixed issue #6: Incorrectly treats editable FeatureService as not editable bug.
+- Fixed issue #7 (Partial): Move editing functionality into separate libraries. 
+- Fixed issue #8: id undefined error when canceling row delete.
+- Fixed issue #9: Legend not working at JS API v3.10.
+- Fixed issue #10: Dgrid dirty bit not working after feature service reload bug.
+
 ## Version 0.5 - Dec. 3, 2013
 - Fixed null attribute bug. If a null attribute existed the grid would fail to load.
 - Fixed minor bugs related to how the library determined parameters from the Feature Service, for example it now uses the correct syntax to determine the Feature Service's spatialReference.

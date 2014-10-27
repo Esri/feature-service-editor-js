@@ -305,6 +305,10 @@ require([
                     featureEditor.dgridRowClickListener = null;
                     featureEditor.dgridCellClickListener = null;
 
+                    var grid = document.getElementById("grid")
+                    grid.innerHTML = "";
+                    grid.style.visibility = "hidden";
+
                 }
 
                 if(featureEditor.dgridRowClickListener != null)featureEditor.dgridRowClickListener.remove();
@@ -317,7 +321,18 @@ require([
                     featureEditor.addGrid = null;
                     featureEditor.ui.handleAddRecord(true);
                     featureEditor.ui.handleAddRemoveEditGrid(false);
+
+                    var addGrid = document.getElementById("add-grid")
+                    addGrid.innerHTML = "";
+                    addGrid.style.visibility = "hidden";
+                    addGrid.style.display = "none";
+
                 }
+
+                document.getElementById("grid-legend").innerHTML = "";
+                document.getElementById("grid-legend-parent").style.visibility = "hidden";
+                dojo.byId("pageInfo").innerHTML = "";
+                dojo.byId("recordsInfo").innerHTML = 0;
             }
 
             /**

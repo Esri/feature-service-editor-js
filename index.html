@@ -40,6 +40,7 @@
         <div class="clear" style="clear: both"></div>
         <div class="loadBtnDiv">
             <button id="load-btn" onclick="featureEditor.init(true)">Load</button>
+            <button id="clear-btn" onclick="featureEditor.clear()">Clear</button>
         </div>
     </div>
 </div>
@@ -100,8 +101,6 @@ featureEditor.ui = {};
 featureEditor.grid = null;
 featureEditor.addGrid = null;
 featureEditor.pageInfo = null;
-featureEditor.store = null;
-featureEditor.addStore = null;
 featureEditor.currentRecord = null;
 featureEditor.currentAddRecord = null;
 featureEditor.currentAddRow = null;
@@ -209,8 +208,6 @@ require([
                 //Attempt a soft reset of grid data without having to recreate from scratch.
                 if(featureEditor.grid != null){
 
-                    featureEditor.store = null;
-                    featureEditor.addStore = null;
                     featureEditor.grid = null;
                     featureEditor.currentRecord = null;
                     featureEditor.currentAddRow = null;
@@ -284,6 +281,42 @@ require([
                 }
                 else{
                     alert("Feature Service URL is not valid");
+                }
+            }
+
+            featureEditor.clear = function(){
+                //Attempt a soft reset of grid data without having to recreate from scratch.
+                if(featureEditor.grid != null){
+
+                    featureEditor.grid.store = null;
+                    featureEditor.grid.refresh();
+                    featureEditor.grid = null;
+                    featureEditor.currentRecord = null;
+                    featureEditor.currentAddRow = null;
+                    featureEditor.featureLayer = null;
+                    featureEditor.restEndpoint = null;
+                    featureEditor.spatialReference = null;
+                    featureEditor.xField = null;
+                    featureEditor.yField = null;
+
+                    featureEditor.featureServiceColumnNamesArr = [];
+                    featureEditor.dgridMasterRecordArr = [];
+                    featureEditor.dgridAddCellClickListener = null;
+                    featureEditor.dgridRowClickListener = null;
+                    featureEditor.dgridCellClickListener = null;
+
+                }
+
+                if(featureEditor.dgridRowClickListener != null)featureEditor.dgridRowClickListener.remove();
+                if(featureEditor.dgridCellClickListener != null)featureEditor.dgridCellClickListener.remove();
+
+                //If the add new feature grid is visible then shut it down
+                if(featureEditor.addGrid != null){
+                    featureEditor.addGrid.store.setData({});
+                    featureEditor.addGrid.refresh();
+                    featureEditor.addGrid = null;
+                    featureEditor.ui.handleAddRecord(true);
+                    featureEditor.ui.handleAddRemoveEditGrid(false);
                 }
             }
 
@@ -463,7 +496,7 @@ require([
                     featureEditor.featureServiceColumnNamesArr = columnArr;
 
                     if(featureEditor.grid == null){
-                        featureEditor.utils.createGrid(columnArr);
+                        featureEditor.grid = featureEditor.utils.createGrid(columnArr);
                         featureEditor.utils.updateGrid(featureSet, pageNumber, arr)
                     }
                     else{
@@ -780,7 +813,7 @@ require([
 
                 try{
 
-                    featureEditor.addStore.put(entryObject);
+                    featureEditor.addGrid.store.put(entryObject);
                     featureEditor.addGrid.refresh();
 
                     var row2 = featureEditor.addGrid.row("TBD");
@@ -863,11 +896,10 @@ require([
              * @param object ArcGIS Feature
              */
             featureEditor.utils.createGrid = function(/* Object */object){
-                var complete = true;
 
                 try{
                     var dataIDProperty = object[0].field;   //DEFAULT...Could be problematic depending on browser!
-                    featureEditor.store = new Memory({
+                    var store = new Memory({
                         data:[],
                         idProperty:dataIDProperty
                     });
@@ -875,24 +907,21 @@ require([
                     var CustomGrid = declare([OnDemandGrid,Selection,CellSelection,Keyboard]);
 
                     // Dojo's dGrid
-                    featureEditor.grid = new CustomGrid({
-                        store:featureEditor.store,
+                    var grid = new CustomGrid({
+                        store: store,
                         columns:object,
                         selectionMode:'single'/*,
                          noDataMessage:'Nothing found.'*/
                     }, 'grid');
 
-                    F.utils.dataGrid = featureEditor.grid;
-
                     //featureEditor.utils._setListeners();
 
                 }
                 catch(err){
-                    complete = false;
                     console.log("createGrid: " + err.message);
                 }
 
-                return complete;
+                return grid;
             }
 
             /**
@@ -903,7 +932,7 @@ require([
                 try{
 
                     var dataIDProperty = object[0].field;   //DEFAULT...Could be problematic depending on browser!
-                    featureEditor.addStore = new Memory({
+                    var addStore = new Memory({
                         data:[],
                         idProperty:dataIDProperty
                     });
@@ -912,7 +941,7 @@ require([
 
                     // Dojo's dGrid
                     featureEditor.addGrid = new CustomGrid({
-                        store:featureEditor.addStore,
+                        store: addStore,
                         columns:object,
                         selectionMode:'single'/*,
                          noDataMessage:'Nothing found.'*/

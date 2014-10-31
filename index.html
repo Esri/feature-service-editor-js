@@ -143,29 +143,33 @@ featureEditor.localEnum = (function(){
     return values;
 });
 
+function simpleAddRemove(id){
+    addRemoveColumns(id,featureEditor.grid);
+}
+
 require([
-            'dojo/_base/declare',
-            "esri/layers/FeatureLayer",
-            "esri/tasks/query",
-            "dijit/form/Button",
-            "dijit/form/ComboBox",
-            "dojo/number",
-            "dgrid/OnDemandGrid",
-            "dgrid/Selection",
-            "dgrid/extensions/ColumnHider",
-            "dgrid/CellSelection",
-            "dgrid/util/mouse",
-            "dgrid/Keyboard",
-            "dgrid/editor",
-            "dojo/store/Memory",
-            "dojo/on",
-            "dojo/when",
-            "dojo/request",
-            "dojo/query",
-            "dojo/Deferred",
-            "dojox/widget/Standby",
-            "libs/utils.js",
-            "dojo/domReady!"],
+    'dojo/_base/declare',
+    "esri/layers/FeatureLayer",
+    "esri/tasks/query",
+    "dijit/form/Button",
+    "dijit/form/ComboBox",
+    "dojo/number",
+    "dgrid/OnDemandGrid",
+    "dgrid/Selection",
+    "dgrid/extensions/ColumnHider",
+    "dgrid/CellSelection",
+    "dgrid/util/mouse",
+    "dgrid/Keyboard",
+    "dgrid/editor",
+    "dojo/store/Memory",
+    "dojo/on",
+    "dojo/when",
+    "dojo/request",
+    "dojo/query",
+    "dojo/Deferred",
+    "dojox/widget/Standby",
+    "libs/utils.js",
+    "dojo/domReady!"],
         function(declare,FeatureLayer,Query,Button,ComboBox,number,OnDemandGrid,ColumnHider,
                  Selection,CellSelection,mouseUtil,Keyboard,editor,Memory,on,when,request,query,Deferred,Standby){
 
@@ -276,7 +280,7 @@ require([
                         console.log("queryIds: Error: " + err.code + ", " + err.details[0]);
                         alert("No results found. " + err.details[0]);
                     }).then(dojo.hitch(window,function(){
-                        getFieldNamesArr(featureEditor.featureLayer.fields,featureEditor.xField,featureEditor.yField,function(result){
+                        getFieldNamesArr(featureEditor,function(result){
                             featureEditor.featureServiceEditableDetails = result;
                         })
                     }));
@@ -561,29 +565,77 @@ require([
                     }
                 }
 
-                columnArr[i] = {
-                    label: "Save",
-                    field: "Save",
-                    hidden: false
-                }
+                //Add the Save button
+                columnArr[i] =  {save:"Save",renderCell: function(object,data,cell){
 
-                columnArr[i+1] = {
-                    label: "Undo",
-                    field: "Undo",
-                    hidden: false
-                }
+                    var btn = Button({
+                        showLabel : false,
+                        iconClass : "saveIcon16",
+                        disabled : true,
+                        style: "visibility:visible",
+                        onClick: dojo.hitch(this,function(event){
+                            if(this.grid.id == "grid"){
+                                featureEditor.updateRecord();
+                            }
+                            else{
+                                //alert('hi');
+                                featureEditor.addNewRecord();
+                            }
+                        })
+                    },cell.appendChild(document.createElement("div")));
+                }};
 
-                columnArr[i+2] = {
-                    label: "Delete",
-                    field: "Delete",
-                    hidden: false
-                }
+                //Add the Undo button
+                columnArr[i+1] =  {undo:"Undo",renderCell: function(object,data,cell){
+
+                    var undoBtn = Button({
+                        showLabel : false,
+                        iconClass : "undoIcon16",
+                        label : "Undo",
+                        disabled : true,
+                        style: "visibility:visible",
+                        onClick: dojo.hitch(this,function(event){
+                            if(this.grid.id == "grid"){
+                                featureEditor.utils.revertLocalRecord();
+                            }
+                            else{
+                                featureEditor.utils.revertLocalAddRecord();
+                            }
+                        })
+                    },cell.appendChild(document.createElement("div")));
+                }};
+
+
+                //Add the Undo button
+                columnArr[i+2] =  {delete:"Delete",renderCell: function(object,data,cell){
+
+                    var deleteBtn = Button({
+                        showLabel : false,
+                        iconClass : "deleteIcon16",
+                        label : "Delete",
+                        disabled : true,
+                        style: "visibility:visible",
+                        onClick: dojo.hitch(this,function(event){
+                            if(this.grid.id == "grid"){
+                                var test = confirm("Really delete?");
+                                if(test == true){
+                                    featureEditor.deleteFeature(featureEditor.currentRecord,null,true);
+                                }
+                                else{
+                                    featureEditor.utils.revertLocalRecord();
+                                }
+                            }
+                        })
+                    },cell.appendChild(document.createElement("div")));
+                }};
 
                 featureEditor.featureServiceColumnNamesArr = columnArr;
 
                 if(featureEditor.grid == null){
                     featureEditor.grid = featureEditor.utils.createGrid(columnArr);
                 }
+
+                featureEditor.utils.addNewLocalRecord();
             }
 
             /**
@@ -962,7 +1014,7 @@ require([
                 for (var entry in grid.columns){
                     var item = grid.columns[entry];
                     if(typeof(item.label) !== "undefined" ){
-                        htmlString +=  "<input type='checkbox' onclick='addRemoveColumns(" + item.id +")' id='checkbox" +
+                        htmlString +=  "<input type='checkbox' onclick='simpleAddRemove(" + item.id +")' id='checkbox" +
                                 item.id + "' checked='yes' value='"+ item.id +"'>" + item.label  + "<br/>";
                     }
                 }

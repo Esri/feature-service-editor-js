@@ -175,7 +175,9 @@ require([
                     {name:"http://services.arcgis.com/IZtlGBUe4KTzLOl4/arcgis/rest/services/BPX_RTD_BusStops2/FeatureServer/0",
                         id:"http://services.arcgis.com/IZtlGBUe4KTzLOl4/arcgis/rest/services/BPX_RTD_BusStops2/FeatureServer/0"},
                     {name:"http://services.arcgis.com/IZtlGBUe4KTzLOl4/ArcGIS/rest/services/BPX_RTD_BusStops3/FeatureServer/0",
-                        id:"http://services.arcgis.com/IZtlGBUe4KTzLOl4/ArcGIS/rest/services/BPX_RTD_BusStops3/FeatureServer/0"}
+                        id:"http://services.arcgis.com/IZtlGBUe4KTzLOl4/ArcGIS/rest/services/BPX_RTD_BusStops3/FeatureServer/0"},
+                    {name:"http://services1.arcgis.com/M8KJPUwAXP8jhtnM/arcgis/rest/services/test2/FeatureServer/0",
+                        id:"http://services1.arcgis.com/M8KJPUwAXP8jhtnM/arcgis/rest/services/test2/FeatureServer/0"}
                 ]
             });
 
@@ -265,6 +267,7 @@ require([
                             featureEditor._fetchRecords(objectIds);
                         }
                         else{
+                            featureEditor.createEmptyGrid();
                             alert("No results found.");
                             featureEditor.floadingIcon.hide();
                         }
@@ -351,6 +354,7 @@ require([
                     }
 
                     featureEditor.floadingIcon.hide();
+                    featureEditor.utils.addNewLocalRecord();
                     alert("No record found.");
                 }
             }
@@ -520,6 +524,66 @@ require([
 
 
                 });
+            }
+
+            featureEditor.createEmptyGrid = function(){
+                featureEditor.spatialReference = featureEditor.featureLayer.spatialReference;
+
+                var i = 0;
+                var arr = [];
+                var columnArr = [];
+                var fieldsArr = featureEditor.featureLayer.fields;
+
+                for (var i=0; i < fieldsArr.length; i++){
+                    console.log(fieldsArr[i].name);
+                   var key = fieldsArr[i].name;
+
+                    //See if there are any editable features.
+                    var editTest = fieldsArr[i].editable;
+
+                    //Item is editable if != -1
+                    if(editTest == true){
+
+                        columnArr[i] = editor({
+                            label:key.toString(),
+                            field:key.toString(),
+                            hidden: false,
+                            editor:"text",
+                            editOn:"dblclick"
+                        });
+                    }
+                    else{
+                        columnArr[i] = {
+                            label:key.toString(),
+                            field:key.toString(),
+                            hidden:false
+                        }
+                    }
+                }
+
+                columnArr[i] = {
+                    label: "Save",
+                    field: "Save",
+                    hidden: false
+                }
+
+                columnArr[i+1] = {
+                    label: "Undo",
+                    field: "Undo",
+                    hidden: false
+                }
+
+                columnArr[i+2] = {
+                    label: "Delete",
+                    field: "Delete",
+                    hidden: false
+                }
+
+                featureEditor.featureServiceColumnNamesArr = columnArr;
+
+                if(featureEditor.grid == null){
+                    featureEditor.grid = featureEditor.utils.createGrid(columnArr);
+                }
             }
 
             /**
@@ -805,10 +869,10 @@ require([
              */
             featureEditor.utils.addNewLocalRecord = function(){
 
-                if(featureEditor.grid == null){
-                    console.log("addNewLocalRecord: unable to create because primary grid is null.")
-                    return;
-                }
+//                if(featureEditor.grid == null){
+//                    console.log("addNewLocalRecord: unable to create because primary grid is null.")
+//                    return;
+//                }
 
                 featureEditor.ui.handleAddRemoveEditGrid(true);
                 featureEditor.utils.createAddGrid(featureEditor.featureServiceColumnNamesArr);

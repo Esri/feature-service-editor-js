@@ -1,5 +1,8 @@
 # feature-service-editor-js - Changelog
 
+## Version 0.7 - Oct. 21, 2014
+- App now works with empty feature services
+
 ## Version 0.6 - Aug. 7, 2014
 - Fixed issue #5: Update to JS API v3.10.
 - Fixed issue #6: Incorrectly treats editable FeatureService as not editable bug.

@@ -76,6 +76,12 @@ body {
     width: 80px;
 }
 
+#clear-btn {
+    background-color: #008000;
+    color: #ffffff;
+    width: 80px;
+}
+
 #add-new-record-btn {
     color: #C0C0C0;
 }

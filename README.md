@@ -1,5 +1,7 @@
 #feature-service-editor
 
+**DEPRECATED as of April, 2015** This editor has been replaced by [esri/digit/FeatureTable](https://developers.arcgis.com/javascript/jsapi/featuretable-amd.html).
+
 This ready-to-go JavaScript prototype provides very basic SQL-like capabilities to add, delete, edit or search for data in "point" based feature services with or without a map. It is intended for reading any valid ArcGIS FeatureService. 
 
 Use this application as-is, embed it in your own application, extend or modify it to meet your needs. Basically have fun, and feedback or contributions are appreciated!
